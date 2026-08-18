@@ -40,6 +40,7 @@ export type Task = {
 export type Topic = {
   id: string;
   area: AreaId;
+  group?: string;
   title: string;
   subtitle: string;
   level: "Core" | "Interview" | "Production";
@@ -342,7 +343,7 @@ const featuredTopics: Topic[] = [
     sources: [
       { label: "learn.javascript.ru: замыкание", url: "https://learn.javascript.ru/closure" },
       { label: "MDN: Closures", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures" },
-      { label: "Дока: JavaScript", url: "https://doka.guide/js/" },
+      { label: "Открытый справочник: JavaScript", url: "https://doka.guide/js/" },
     ],
     sections: [
       {
@@ -747,7 +748,7 @@ async function loadProducts(query) {
     sources: [
       { label: "learn.javascript.ru: классы", url: "https://learn.javascript.ru/classes" },
       { label: "MDN: Classes", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes" },
-      { label: "Дока: JavaScript", url: "https://doka.guide/js/" },
+      { label: "Открытый справочник: JavaScript", url: "https://doka.guide/js/" },
     ],
     sections: [
       {
@@ -951,7 +952,7 @@ class Modal extends View {
     sources: [
       { label: "learn.javascript.ru: браузерные события", url: "https://learn.javascript.ru/introduction-browser-events" },
       { label: "MDN: Event bubbling", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Event_bubbling" },
-      { label: "Дока: DOM", url: "https://doka.guide/js/dom/" },
+      { label: "Открытый справочник: DOM", url: "https://doka.guide/js/dom/" },
     ],
     sections: [
       {
@@ -1142,7 +1143,7 @@ document.querySelector(".todo-list").append(item);`,
     sources: [
       { label: "MDN: Cascade", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/Cascade" },
       { label: "MDN: Specificity", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity" },
-      { label: "Дока: CSS", url: "https://doka.guide/css/" },
+      { label: "Открытый справочник: CSS", url: "https://doka.guide/css/" },
     ],
     sections: [
       {
@@ -1341,7 +1342,7 @@ document.querySelector(".todo-list").append(item);`,
     sources: [
       { label: "MDN: CSS layout", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout" },
       { label: "MDN: CSS grid", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout" },
-      { label: "Дока: CSS", url: "https://doka.guide/css/" },
+      { label: "Открытый справочник: CSS", url: "https://doka.guide/css/" },
     ],
     sections: [
       {
@@ -1524,8 +1525,8 @@ document.querySelector(".todo-list").append(item);`,
     duration: "70 мин",
     outcome: "Ты сможешь выбирать теги по смыслу, делать формы удобными на телефоне и не ломать базовую доступность.",
     sources: [
-      { label: "Дока: HTML", url: "https://doka.guide/html/" },
-      { label: "Дока: доступность", url: "https://doka.guide/a11y/" },
+      { label: "Открытый справочник: HTML", url: "https://doka.guide/html/" },
+      { label: "Открытый справочник: доступность", url: "https://doka.guide/a11y/" },
       { label: "MDN: HTML forms", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms" },
     ],
     sections: [
@@ -1949,24 +1950,24 @@ function interviewChecklist(seed: ProTopicSeed) {
 
 const sourceMap: Record<AreaId, { label: string; url: string }[]> = {
   js: [
-    { label: "Дока: JavaScript", url: "https://doka.guide/js/" },
+    { label: "Открытый справочник: JavaScript", url: "https://doka.guide/js/" },
     { label: "learn.javascript.ru", url: "https://learn.javascript.ru/" },
     { label: "MDN: JavaScript", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
   ],
   css: [
-    { label: "Дока: CSS", url: "https://doka.guide/css/" },
+    { label: "Открытый справочник: CSS", url: "https://doka.guide/css/" },
     { label: "MDN: CSS", url: "https://developer.mozilla.org/en-US/docs/Web/CSS" },
     { label: "MDN Learn: CSS layout", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout" },
   ],
   html: [
-    { label: "Дока: HTML", url: "https://doka.guide/html/" },
-    { label: "Дока: доступность", url: "https://doka.guide/a11y/" },
+    { label: "Открытый справочник: HTML", url: "https://doka.guide/html/" },
+    { label: "Открытый справочник: доступность", url: "https://doka.guide/a11y/" },
     { label: "MDN: HTML", url: "https://developer.mozilla.org/en-US/docs/Web/HTML" },
   ],
   react: [
     { label: "React Docs: Learn", url: "https://react.dev/learn" },
     { label: "React Docs: Reference", url: "https://react.dev/reference/react" },
-    { label: "Дока: рецепты React", url: "https://doka.guide/recipes/" },
+    { label: "Открытый справочник: рецепты", url: "https://doka.guide/recipes/" },
   ],
 };
 
@@ -1975,6 +1976,10 @@ function devToolFor(area: AreaId) {
   if (area === "html") return "Elements, Accessibility tree и валидатор разметки";
   if (area === "react") return "React DevTools Profiler и Components";
   return "Console, Sources, Network и Performance в DevTools";
+}
+
+function proTopicGroup(area: AreaId) {
+  return `Pro-модули: ${areas[area].title}`;
 }
 
 function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
@@ -2184,6 +2189,7 @@ function makeProTopic(seed: ProTopicSeed): Topic {
   return {
     id: seed.id,
     area: seed.area,
+    group: proTopicGroup(seed.area),
     title: seed.title,
     subtitle: seed.subtitle,
     level: seed.level,
@@ -2283,6 +2289,7 @@ type DokaTopicDraft = {
   concepts: string[];
   mistakes: string[];
   sourceUrl: string;
+  group: string;
 };
 
 const voidHtmlTags = new Set([
@@ -2378,6 +2385,75 @@ function dokaLevel(section: DokaSection, slug: string, title: string): Topic["le
   }
 
   return "Core";
+}
+
+function dokaGroup(area: AreaId, section: DokaSection, slug: string, title: string) {
+  const value = `${slug} ${title}`.toLowerCase();
+
+  if (section === "recipes") return "Практические рецепты";
+  if (section === "tools") return "Веб-платформа и инструменты";
+
+  if (section === "a11y") {
+    if (slug.startsWith("aria-")) return "A11y: ARIA-атрибуты";
+    if (slug.startsWith("role-")) return "A11y: роли";
+    if (/contrast|colors|prefers|motion|transparency/.test(value)) return "A11y: настройки пользователя";
+    return "A11y: основы и проверки";
+  }
+
+  if (area === "html") {
+    if (/attribute|атрибут|accept|autocomplete|autofocus|capture|class|contenteditable|crossorigin|data-|disabled|download|for|hidden|id|inert|inputmode|minlength|multiple|novalidate|placeholder|required|src|type/.test(value)) {
+      return "HTML: атрибуты";
+    }
+    if (/form|input|button|label|fieldset|legend|select|textarea|option|datalist|meter|progress|output/.test(value)) {
+      return "HTML: формы";
+    }
+    if (/img|picture|audio|video|canvas|svg|iframe|embed|object|source|track|map|area/.test(value)) {
+      return "HTML: медиа и встраивание";
+    }
+    if (/table|caption|col|thead|tbody|tfoot|tr|td|th/.test(value)) return "HTML: таблицы";
+    if (/head|meta|link|script|style|base|doctype|html|body|manifest|seo|viewport/.test(value)) {
+      return "HTML: документ и ресурсы";
+    }
+    if (/article|aside|footer|header|main|nav|section|h1|h2|h3|h4|h5|h6|address/.test(value)) {
+      return "HTML: структура страницы";
+    }
+    return "HTML: текст и семантика";
+  }
+
+  if (area === "css") {
+    if (/grid|flex|align|justify|place|gap|order|columns|container|layout/.test(value)) return "CSS: раскладки";
+    if (/^:|active|hover|focus|checked|disabled|enabled|valid|invalid|visited|target|nth|has|not|is|where/.test(value)) {
+      return "CSS: состояния и псевдоклассы";
+    }
+    if (/^::|before|after|marker|selection|placeholder|backdrop|file-selector-button|first-letter|first-line/.test(value)) {
+      return "CSS: псевдоэлементы";
+    }
+    if (/animation|transition|transform|scroll|motion|timeline|view-transition/.test(value)) return "CSS: движение";
+    if (/color|background|gradient|shadow|opacity|filter|blend|mask|accent/.test(value)) return "CSS: цвет и эффекты";
+    if (/font|text|line|letter|word|white-space|hyphen|writing|orientation/.test(value)) return "CSS: текст";
+    if (/width|height|margin|padding|border|box|size|inset|position|top|right|bottom|left|overflow|aspect|object-fit|float|clear|z-index/.test(value)) {
+      return "CSS: размеры и позиционирование";
+    }
+    if (/selector|specificity|cascade|layer|scope|custom|variable|inherit|initial|unset|revert|important/.test(value)) {
+      return "CSS: каскад и архитектура";
+    }
+    if (/^@|media|supports|keyframes|font-face|import|property|layer/.test(value)) return "CSS: at-rules";
+    return "CSS: свойства и функции";
+  }
+
+  if (area === "react") return "React: практика";
+
+  if (/array/.test(value)) return "JS: массивы";
+  if (/string/.test(value)) return "JS: строки";
+  if (/promise|async|await|fetch|abort|controller|request|response|websocket|worker/.test(value)) return "JS: асинхронность и сеть";
+  if (/dom|document|element|node|event|listener|queryselector|classlist|window|history|location|navigator|storage/.test(value)) {
+    return "JS: DOM и Web API";
+  }
+  if (/object|prototype|class|this|map|set|weak|symbol|iterator|generator|proxy|reflect/.test(value)) return "JS: объекты и коллекции";
+  if (/date|intl|math|number|bigint|json|regexp|url|buffer/.test(value)) return "JS: данные и форматирование";
+  if (/function|scope|closure|var|let|const|operator|condition|loop|while|for|switch/.test(value)) return "JS: язык и управление";
+  if (/error|try|catch|throw/.test(value)) return "JS: ошибки";
+  return "JS: справочник API";
 }
 
 function dokaConcepts(area: AreaId, section: DokaSection, term: string) {
@@ -2817,6 +2893,7 @@ function makeDokaDraft(seed: DokaReferenceSeed): DokaTopicDraft {
     concepts: dokaConcepts(area, section, term),
     mistakes: dokaMistakes(area, section, term),
     sourceUrl: dokaSourceUrl(section, slug),
+    group: dokaGroup(area, section, slug, rawTitle),
   };
 }
 
@@ -3010,13 +3087,14 @@ function makeDokaReferenceTopic(seed: DokaReferenceSeed): Topic {
   return {
     id: draft.id,
     area: draft.area,
+    group: draft.group,
     title: draft.title,
-    subtitle: `${draft.sectionName}: авторский Pro-конспект по каталогу Доки с рабочим примером, вопросами и задачами по теме.`,
+    subtitle: `${draft.sectionName}: авторский Pro-конспект с рабочим примером, вопросами и задачами по теме.`,
     level: dokaLevel(draft.section, draft.slug, draft.title),
     duration: draft.section === "recipes" ? "30 мин" : "18 мин",
     outcome: `После темы ты сможешь объяснить «${draft.term}», применить в интерфейсе, назвать ограничения и пройти короткий junior/junior+ вопрос.`,
     sources: [
-      { label: `Дока: ${draft.term}`, url: draft.sourceUrl },
+      { label: `Открытый справочник: ${draft.term}`, url: draft.sourceUrl },
       ...sourceMap[draft.area].filter((source) => !source.url.includes("doka.guide")).slice(0, 2),
     ],
     sections: [
@@ -3025,7 +3103,7 @@ function makeDokaReferenceTopic(seed: DokaReferenceSeed): Topic {
         body: [
           draft.core,
           draft.mechanism,
-          `Эта карточка сделана как быстрый Pro-разбор: сначала смысл, потом рабочий пример, затем проверка и тренировка. Текст не копирует статью-источник, а использует каталог Доки как карту покрытия.`,
+          "Эта карточка сделана как быстрый Pro-разбор: сначала смысл, потом рабочий пример, затем проверка и тренировка. Материал написан своими словами и помогает быстро перейти от термина к практике.",
         ],
         bullets: draft.concepts,
       },

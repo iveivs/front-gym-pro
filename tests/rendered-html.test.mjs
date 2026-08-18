@@ -32,9 +32,11 @@ test("server-renders Front Gym Pro shell", async () => {
   assert.match(html, /Front Gym Pro/);
   assert.match(html, /платформа подготовки фронтендера/);
   assert.match(html, /Учебник, тренажёр, интервью-база/);
+  assert.match(html, /Системное повторение фронтенда/);
   assert.match(html, /1080<!-- --> модулей/);
   assert.match(html, /10800<!-- --> вопросов/);
   assert.match(html, /3286<!-- --> задач/);
+  assert.doesNotMatch(html, /Доки|каталогу Доки|масштаба Доки/);
   assert.doesNotMatch(html, /codex-preview|SkeletonPreview|react-loading-skeleton|Your site is taking shape/i);
 });
 
@@ -50,6 +52,8 @@ test("product content is wired into the app", async () => {
   assert.match(page, /frontGymProProgress/);
   assert.match(page, /Начать тренировку/);
   assert.match(page, /Копировать задачу/);
+  assert.match(page, /visibleTopicGroups/);
+  assert.match(page, /topicGroupHeader/);
   assert.match(content, /Замыкания, область видимости/);
   assert.match(content, /Event loop, Promise/);
   assert.match(content, /Семантика, формы/);
@@ -60,8 +64,10 @@ test("product content is wired into the app", async () => {
   assert.match(content, /Suspense, lazy/);
   assert.match(content, /dokaReferenceTopics/);
   assert.match(content, /makeDokaReferenceTopic/);
-  assert.match(content, /Текст не копирует статью-источник/);
-  assert.match(content, /авторский Pro-конспект по каталогу Доки/);
+  assert.match(content, /Материал написан своими словами/);
+  assert.match(content, /авторский Pro-конспект с рабочим примером/);
+  assert.match(content, /CSS: раскладки/);
+  assert.match(content, /JS: массивы/);
   assert.match(dokaCatalog, /doka-guide\/content/);
   assert.match(dokaCatalog, /Counts: html: 136, css: 335, js: 244, a11y: 163, tools: 90, recipes: 44/);
   assert.match(layout, /lang="ru"/);

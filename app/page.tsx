@@ -8,6 +8,7 @@ import {
   topics,
   type AreaId,
   type Task,
+  type Topic,
 } from "./content";
 
 type Mode = "learn" | "train" | "tasks" | "interview" | "roadmap";
@@ -59,6 +60,26 @@ ${task.starter}
 ${task.checklist.map((item) => `- ${item}`).join("\n")}`;
 }
 
+type TopicGroup = {
+  title: string;
+  topics: Topic[];
+};
+
+function topicGroupTitle(topic: Topic) {
+  return topic.group ?? `Pro-модули: ${areas[topic.area].title}`;
+}
+
+function groupTopics(list: Topic[]): TopicGroup[] {
+  const groups = new Map<string, Topic[]>();
+
+  for (const topic of list) {
+    const title = topicGroupTitle(topic);
+    groups.set(title, [...(groups.get(title) ?? []), topic]);
+  }
+
+  return [...groups].map(([title, groupTopics]) => ({ title, topics: groupTopics }));
+}
+
 export default function Home() {
   const [area, setArea] = useState<AreaId | "all">("all");
   const [query, setQuery] = useState("");
@@ -95,6 +116,7 @@ export default function Home() {
   }, [area, query]);
 
   const currentTopic = topics.find((topic) => topic.id === topicId) ?? topics[0];
+  const visibleTopicGroups = useMemo(() => groupTopics(visibleTopics), [visibleTopics]);
   const currentQuestion = currentTopic.quiz[questionIndex];
   const finished = questionIndex >= currentTopic.quiz.length;
   const visibleScore = score + (selectedAnswer === currentQuestion?.correct ? 1 : 0);
@@ -199,8 +221,8 @@ export default function Home() {
           <p className="eyebrow">Pro standard</p>
           <h1>Учебник, тренажёр, интервью-база и рабочая шпаргалка в одном интерфейсе.</h1>
           <p>
-            Pro-каталог расширен до масштаба Доки: глубокие модули, справочные карточки,
-            рабочие сценарии, интервью-вопросы и задачи строго по теме.
+            Системное повторение фронтенда: глубокие модули, справочные карточки,
+            рабочие сценарии, интервью-вопросы и задачи в IDE.
           </p>
         </div>
 
@@ -251,23 +273,33 @@ export default function Home() {
           </div>
 
           <div className="topicButtons">
-            {visibleTopics.map((topic) => {
-              const best = progress.bestScores[topic.id] ?? 0;
-              const isActive = topic.id === currentTopic.id;
+            {visibleTopicGroups.map((group) => (
+              <section className="topicGroup" key={group.title}>
+                <div className="topicGroupHeader">
+                  <span>{group.title}</span>
+                  <small>{group.topics.length}</small>
+                </div>
+                <div className="topicGroupItems">
+                  {group.topics.map((topic) => {
+                    const best = progress.bestScores[topic.id] ?? 0;
+                    const isActive = topic.id === currentTopic.id;
 
-              return (
-                <button
-                  key={topic.id}
-                  className={isActive ? "topicButton active" : "topicButton"}
-                  onClick={() => chooseTopic(topic.id)}
-                >
-                  <span>{topic.title}</span>
-                  <small>
-                    {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
-                  </small>
-                </button>
-              );
-            })}
+                    return (
+                      <button
+                        key={topic.id}
+                        className={isActive ? "topicButton active" : "topicButton"}
+                        onClick={() => chooseTopic(topic.id)}
+                      >
+                        <span>{topic.title}</span>
+                        <small>
+                          {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
+                        </small>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
         </aside>
 
