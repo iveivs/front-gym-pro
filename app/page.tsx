@@ -65,8 +65,53 @@ type TopicGroup = {
   topics: Topic[];
 };
 
+const groupOrder = [
+  "Pro-модули: JavaScript",
+  "JS: язык и управление",
+  "JS: объекты и коллекции",
+  "JS: массивы",
+  "JS: строки",
+  "JS: данные и форматирование",
+  "JS: асинхронность и сеть",
+  "JS: DOM и Web API",
+  "JS: ошибки",
+  "JS: справочник API",
+  "Pro-модули: CSS",
+  "CSS: каскад и архитектура",
+  "CSS: раскладки",
+  "CSS: размеры и позиционирование",
+  "CSS: текст",
+  "CSS: цвет и эффекты",
+  "CSS: движение",
+  "CSS: состояния и псевдоклассы",
+  "CSS: псевдоэлементы",
+  "CSS: at-rules",
+  "CSS: свойства и функции",
+  "Pro-модули: HTML",
+  "HTML: документ и ресурсы",
+  "HTML: структура страницы",
+  "HTML: текст и семантика",
+  "HTML: формы",
+  "HTML: медиа и встраивание",
+  "HTML: таблицы",
+  "HTML: атрибуты",
+  "A11y: основы и проверки",
+  "A11y: ARIA-атрибуты",
+  "A11y: роли",
+  "A11y: настройки пользователя",
+  "Pro-модули: React",
+  "React: практика",
+  "Веб-платформа и инструменты",
+  "Практические рецепты",
+];
+
 function topicGroupTitle(topic: Topic) {
   return topic.group ?? `Pro-модули: ${areas[topic.area].title}`;
+}
+
+function groupWeight(title: string) {
+  const index = groupOrder.indexOf(title);
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 }
 
 function groupTopics(list: Topic[]): TopicGroup[] {
@@ -77,7 +122,18 @@ function groupTopics(list: Topic[]): TopicGroup[] {
     groups.set(title, [...(groups.get(title) ?? []), topic]);
   }
 
-  return [...groups].map(([title, groupTopics]) => ({ title, topics: groupTopics }));
+  return [...groups]
+    .map(([title, groupTopics]) => ({ title, topics: groupTopics }))
+    .sort((left, right) => groupWeight(left.title) - groupWeight(right.title) || left.title.localeCompare(right.title, "ru"));
+}
+
+function pluralRu(value: number, one: string, few: string, many: string) {
+  const mod10 = value % 10;
+  const mod100 = value % 100;
+
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
 }
 
 export default function Home() {
@@ -90,6 +146,7 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState<Progress>(() => readProgress());
   const [copiedTask, setCopiedTask] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
 
   const visibleTopics = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -115,8 +172,15 @@ export default function Home() {
     });
   }, [area, query]);
 
-  const currentTopic = topics.find((topic) => topic.id === topicId) ?? topics[0];
+  const selectedTopic = topics.find((topic) => topic.id === topicId) ?? topics[0];
+  const currentTopic = visibleTopics.find((topic) => topic.id === topicId) ?? visibleTopics[0] ?? selectedTopic;
+  const currentGroupTitle = topicGroupTitle(currentTopic);
   const visibleTopicGroups = useMemo(() => groupTopics(visibleTopics), [visibleTopics]);
+  const openGroupTitles = useMemo(() => {
+    if (query.trim().length > 0) return new Set(visibleTopicGroups.map((group) => group.title));
+
+    return new Set([currentGroupTitle, ...openGroups]);
+  }, [currentGroupTitle, openGroups, query, visibleTopicGroups]);
   const currentQuestion = currentTopic.quiz[questionIndex];
   const finished = questionIndex >= currentTopic.quiz.length;
   const visibleScore = score + (selectedAnswer === currentQuestion?.correct ? 1 : 0);
@@ -135,14 +199,27 @@ export default function Home() {
 
   function chooseArea(nextArea: AreaId | "all") {
     setArea(nextArea);
+    setOpenGroups([]);
     const firstTopic = topics.find((topic) => nextArea === "all" || topic.area === nextArea);
     if (firstTopic) chooseTopic(firstTopic.id, "learn");
   }
 
   function chooseTopic(nextTopicId: string, nextMode: Mode = "learn") {
+    const nextTopic = topics.find((topic) => topic.id === nextTopicId);
+    if (nextTopic) {
+      const nextGroupTitle = topicGroupTitle(nextTopic);
+      setOpenGroups((groups) => (groups.includes(nextGroupTitle) ? groups : [...groups, nextGroupTitle]));
+    }
+
     setTopicId(nextTopicId);
     setMode(nextMode);
     resetQuiz();
+  }
+
+  function toggleTopicGroup(groupTitle: string) {
+    setOpenGroups((groups) =>
+      groups.includes(groupTitle) ? groups.filter((title) => title !== groupTitle) : [...groups, groupTitle],
+    );
   }
 
   function resetQuiz() {
@@ -269,37 +346,56 @@ export default function Home() {
         <aside className="topicRail" aria-label="Темы">
           <div className="railHeader">
             <span>Темы</span>
-            <small>{visibleTopics.length}</small>
+            <small>
+              {visibleTopicGroups.length} {pluralRu(visibleTopicGroups.length, "группа", "группы", "групп")}
+            </small>
           </div>
+          <p className="railMeta">
+            {visibleTopics.length} {pluralRu(visibleTopics.length, "тема", "темы", "тем")} в выбранном фильтре
+          </p>
 
           <div className="topicButtons">
-            {visibleTopicGroups.map((group) => (
-              <section className="topicGroup" key={group.title}>
-                <div className="topicGroupHeader">
-                  <span>{group.title}</span>
-                  <small>{group.topics.length}</small>
-                </div>
-                <div className="topicGroupItems">
-                  {group.topics.map((topic) => {
-                    const best = progress.bestScores[topic.id] ?? 0;
-                    const isActive = topic.id === currentTopic.id;
+            {visibleTopicGroups.map((group) => {
+              const isOpen = openGroupTitles.has(group.title);
 
-                    return (
-                      <button
-                        key={topic.id}
-                        className={isActive ? "topicButton active" : "topicButton"}
-                        onClick={() => chooseTopic(topic.id)}
-                      >
-                        <span>{topic.title}</span>
-                        <small>
-                          {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
-                        </small>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+              return (
+                <section className="topicGroup" key={group.title}>
+                  <button
+                    type="button"
+                    className="topicGroupHeader"
+                    aria-expanded={isOpen}
+                    onClick={() => toggleTopicGroup(group.title)}
+                  >
+                    <span>{group.title}</span>
+                    <span className="topicGroupMeta">
+                      <small>{group.topics.length}</small>
+                      <b aria-hidden="true">{isOpen ? "-" : "+"}</b>
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="topicGroupItems">
+                      {group.topics.map((topic) => {
+                        const best = progress.bestScores[topic.id] ?? 0;
+                        const isActive = topic.id === currentTopic.id;
+
+                        return (
+                          <button
+                            key={topic.id}
+                            className={isActive ? "topicButton active" : "topicButton"}
+                            onClick={() => chooseTopic(topic.id)}
+                          >
+                            <span>{topic.title}</span>
+                            <small>
+                              {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
+                            </small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         </aside>
 
