@@ -1,0 +1,835 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-2: #edf3f0;
+  --ink: #151716;
+  --muted: #64706a;
+  --line: #d8e0dc;
+  --green: #0b8f76;
+  --green-2: #dff4ed;
+  --blue: #2f5fcb;
+  --coral: #ef6a4b;
+  --yellow: #f0bc3f;
+  --danger: #b3261e;
+  --shadow: 0 18px 48px rgba(20, 34, 28, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  min-width: 320px;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(223, 244, 237, 0.65), rgba(246, 248, 247, 0) 340px),
+    var(--bg);
+  color: var(--ink);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+pre {
+  margin: 16px 0 0;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #29332f;
+  border-radius: 8px;
+  background: #111716;
+  color: #e5fff5;
+  padding: 16px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.appShell {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.topBar,
+.commandCenter,
+.controlDock,
+.workspace {
+  width: 100%;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brandMark {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.brandBlock p,
+.brandBlock strong {
+  display: block;
+  margin: 0;
+}
+
+.brandBlock p {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.brandBlock strong {
+  font-size: clamp(0.98rem, 2vw, 1.12rem);
+}
+
+.topStats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.topStats span,
+.metaLine span,
+.sectionLead span,
+.eyebrow,
+.railHeader small,
+.scoreBoard span,
+.scoreBoard small,
+.roadmapGrid article > span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  padding: 6px 9px;
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.commandCenter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+.productIntro,
+.scoreBoard,
+.controlDock,
+.topicRail,
+.studyPane {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+
+.productIntro {
+  padding: clamp(20px, 4vw, 36px);
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin: 0 0 14px;
+  background: var(--green-2);
+  color: var(--green);
+}
+
+.productIntro h1 {
+  max-width: 920px;
+  margin: 0;
+  font-size: clamp(2rem, 5.2vw, 4.9rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.productIntro p:not(.eyebrow) {
+  max-width: 760px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.65;
+}
+
+.scoreBoard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 22px;
+}
+
+.scoreBoard span,
+.scoreBoard small {
+  width: fit-content;
+  background: var(--surface-2);
+}
+
+.scoreBoard strong {
+  font-size: clamp(3rem, 8vw, 5.4rem);
+  line-height: 0.95;
+}
+
+.meter {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3e9e6;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--blue), var(--coral));
+}
+
+.controlDock {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.searchField {
+  display: grid;
+  gap: 6px;
+}
+
+.searchField span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.searchField input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 12px;
+  outline: 0;
+}
+
+.searchField input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(11, 143, 118, 0.14);
+}
+
+.areaTabs,
+.modeTabs,
+.inlineActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.areaTabs {
+  align-content: end;
+  justify-content: flex-end;
+}
+
+.areaTabs button,
+.modeTabs button,
+.inlineActions button,
+.iconButton,
+.primaryAction,
+.taskItem button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 12px;
+  font-weight: 760;
+}
+
+.areaTabs button.active,
+.modeTabs button.active,
+.iconButton.active {
+  border-color: #b9dfd4;
+  background: var(--green-2);
+  color: #075f50;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.topicRail {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100dvh - 24px);
+  overflow: hidden;
+  padding: 12px;
+}
+
+.railHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 10px;
+  font-weight: 850;
+}
+
+.topicButtons {
+  display: grid;
+  gap: 8px;
+  max-height: calc(100dvh - 92px);
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.topicButton {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 12px;
+  text-align: left;
+}
+
+.topicButton span {
+  font-size: 0.95rem;
+  font-weight: 820;
+  line-height: 1.25;
+}
+
+.topicButton small,
+.topicHeader p,
+.lessonSection p,
+.sectionLead p,
+.taskItem p,
+.feedback p,
+.resultPanel p {
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.topicButton.active {
+  border-color: rgba(11, 143, 118, 0.45);
+  background: linear-gradient(180deg, #effaf6, #ffffff);
+  box-shadow: inset 4px 0 0 var(--green);
+}
+
+.studyPane {
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.topicHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+
+.metaLine {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.topicHeader h2,
+.sectionLead h3,
+.lessonSection h3,
+.splitBlocks h3,
+.qualityBox h3,
+.trainer h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.topicHeader h2 {
+  max-width: 880px;
+  font-size: clamp(1.55rem, 4vw, 2.7rem);
+  line-height: 1.08;
+}
+
+.topicHeader p {
+  max-width: 820px;
+  margin: 12px 0 0;
+}
+
+.modeTabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 16px -4px 0;
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+}
+
+.lesson,
+.trainer,
+.tasksView,
+.interviewView,
+.roadmapView {
+  padding-top: 12px;
+}
+
+.outcomeBand,
+.lessonSection,
+.splitBlocks > div,
+.sourceStrip,
+.taskItem,
+.qualityBox,
+.roadmapGrid article,
+.resultPanel,
+.feedback {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.outcomeBand {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border-left: 5px solid var(--green);
+}
+
+.outcomeBand span {
+  color: var(--green);
+  font-weight: 850;
+}
+
+.outcomeBand p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.lessonSection {
+  margin-top: 12px;
+  padding: clamp(16px, 2vw, 22px);
+}
+
+.lessonSection h3,
+.splitBlocks h3,
+.qualityBox h3 {
+  font-size: clamp(1.18rem, 2.5vw, 1.55rem);
+}
+
+.lessonSection p {
+  margin: 12px 0 0;
+}
+
+.lessonSection ul,
+.splitBlocks ul,
+.taskItem ul,
+.qualityBox ul,
+.roadmapGrid ul {
+  margin: 14px 0 0;
+  padding-left: 20px;
+}
+
+.lessonSection li,
+.splitBlocks li,
+.taskItem li,
+.qualityBox li,
+.roadmapGrid li,
+.interviewList li {
+  margin: 8px 0;
+  color: #34403a;
+  line-height: 1.55;
+}
+
+.workNote {
+  border-left: 4px solid var(--yellow);
+  background: #fff8df;
+  color: #5b4812 !important;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.splitBlocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.splitBlocks > div {
+  padding: 16px;
+}
+
+.sourceStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.sourceStrip a {
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: #34534b;
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  min-height: 46px;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #ffffff;
+}
+
+.trainer {
+  max-width: 940px;
+}
+
+.quizTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 780;
+}
+
+.quizMeter {
+  margin-bottom: 18px;
+}
+
+.trainer h3 {
+  font-size: clamp(1.35rem, 3vw, 2.2rem);
+  line-height: 1.14;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.answers button {
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 14px;
+  text-align: left;
+  line-height: 1.35;
+  font-weight: 740;
+}
+
+.answers button.right {
+  border-color: #7ccdb7;
+  background: #e5f8f0;
+  color: #075f50;
+}
+
+.answers button.wrong {
+  border-color: #f3a191;
+  background: #fff0ed;
+  color: var(--danger);
+}
+
+.answers button.muted {
+  opacity: 0.58;
+}
+
+.feedback,
+.resultPanel {
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.feedback strong,
+.resultPanel span {
+  color: var(--green);
+  font-weight: 900;
+}
+
+.resultPanel strong {
+  display: block;
+  margin: 8px 0;
+  font-size: clamp(3rem, 8vw, 5rem);
+  line-height: 1;
+}
+
+.sectionLead {
+  margin: 0 0 14px;
+}
+
+.sectionLead span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+}
+
+.sectionLead h3 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.sectionLead p {
+  max-width: 760px;
+  margin: 10px 0 0;
+}
+
+.taskList {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.taskItem {
+  min-width: 0;
+  padding: clamp(15px, 2vw, 20px);
+  overflow-wrap: anywhere;
+}
+
+.taskItem h4 {
+  margin: 0 0 10px;
+  font-size: clamp(1.12rem, 2vw, 1.35rem);
+}
+
+.taskItem p {
+  margin: 10px 0 0;
+}
+
+.taskItem dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.taskItem dl > div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 12px;
+}
+
+.taskItem dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.taskItem dd {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.taskItem button {
+  margin-top: 12px;
+}
+
+.interviewList {
+  display: grid;
+  gap: 10px;
+  padding-left: 24px;
+}
+
+.interviewList li {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px;
+}
+
+.qualityBox {
+  margin-top: 12px;
+  padding: 16px;
+  border-left: 5px solid var(--blue);
+}
+
+.roadmapGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.roadmapGrid article {
+  padding: 16px;
+}
+
+.roadmapGrid h4 {
+  margin: 12px 0 0;
+  font-size: 1.16rem;
+}
+
+@media (max-width: 1050px) {
+  .commandCenter,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .topicRail {
+    position: relative;
+    top: auto;
+    max-height: none;
+  }
+
+  .topicButtons {
+    display: flex;
+    overflow-x: auto;
+    max-height: none;
+    padding-bottom: 4px;
+  }
+
+  .topicButton {
+    flex: 0 0 min(310px, 82vw);
+  }
+
+  .roadmapGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .appShell {
+    padding: 10px;
+  }
+
+  .topBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topStats {
+    justify-content: flex-start;
+  }
+
+  .controlDock {
+    grid-template-columns: 1fr;
+  }
+
+  .areaTabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .areaTabs button,
+  .modeTabs button {
+    flex: 0 0 auto;
+  }
+
+  .productIntro {
+    padding: 18px;
+  }
+
+  .productIntro h1 {
+    font-size: clamp(2rem, 12vw, 3.4rem);
+  }
+
+  .topicHeader {
+    display: grid;
+  }
+
+  .topicButtons {
+    display: grid;
+    max-height: 320px;
+    overflow: auto;
+    padding-bottom: 0;
+  }
+
+  .topicButton {
+    flex: auto;
+    width: 100%;
+  }
+
+  .iconButton {
+    width: 100%;
+  }
+
+  .modeTabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .areaTabs,
+  .modeTabs {
+    overflow-x: visible;
+    flex-wrap: wrap;
+  }
+
+  .splitBlocks,
+  .answers,
+  .taskItem dl,
+  .roadmapGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .answers button {
+    min-height: 58px;
+  }
+
+  pre {
+    font-size: 0.78rem;
+  }
+}
