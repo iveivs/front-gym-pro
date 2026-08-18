@@ -328,7 +328,7 @@ const reactTasks: Task[] = [
   },
 ];
 
-export const topics: Topic[] = [
+const featuredTopics: Topic[] = [
   {
     id: "js-closures-scope",
     area: "js",
@@ -1891,6 +1891,1834 @@ setCount((current) => current + 1);`,
     tasks: reactTasks,
   },
 ];
+
+type ProTopicSeed = {
+  id: string;
+  area: AreaId;
+  title: string;
+  subtitle: string;
+  level: "Core" | "Interview" | "Production";
+  duration: string;
+  core: string;
+  mechanism: string;
+  workplace: string;
+  code: string;
+  concepts: string[];
+  mistakes: string[];
+  interview: string[];
+  taskScenario: string;
+  taskPrompt: string;
+  taskInput: string;
+  taskOutput: string;
+  taskStarter: string;
+};
+
+const sourceMap: Record<AreaId, { label: string; url: string }[]> = {
+  js: [
+    { label: "Дока: JavaScript", url: "https://doka.guide/js/" },
+    { label: "learn.javascript.ru", url: "https://learn.javascript.ru/" },
+    { label: "MDN: JavaScript", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
+  ],
+  css: [
+    { label: "Дока: CSS", url: "https://doka.guide/css/" },
+    { label: "MDN: CSS", url: "https://developer.mozilla.org/en-US/docs/Web/CSS" },
+    { label: "MDN Learn: CSS layout", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout" },
+  ],
+  html: [
+    { label: "Дока: HTML", url: "https://doka.guide/html/" },
+    { label: "Дока: доступность", url: "https://doka.guide/a11y/" },
+    { label: "MDN: HTML", url: "https://developer.mozilla.org/en-US/docs/Web/HTML" },
+  ],
+  react: [
+    { label: "React Docs: Learn", url: "https://react.dev/learn" },
+    { label: "React Docs: Reference", url: "https://react.dev/reference/react" },
+    { label: "Дока: рецепты React", url: "https://doka.guide/recipes/" },
+  ],
+};
+
+function devToolFor(area: AreaId) {
+  if (area === "css") return "Computed, Layout и Changes в DevTools";
+  if (area === "html") return "Elements, Accessibility tree и валидатор разметки";
+  if (area === "react") return "React DevTools Profiler и Components";
+  return "Console, Sources, Network и Performance в DevTools";
+}
+
+function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
+  return makeQuiz([
+    {
+      prompt: `Что главное понять в теме «${seed.title}»?`,
+      answer: seed.core,
+      distractors: [
+        "Достаточно выучить название API без понимания механики.",
+        "Тема нужна только для академических примеров и редко влияет на продукт.",
+        "Главное - запомнить один синтаксический шаблон и применять его везде.",
+        "Это вопрос только дизайна, а не поведения интерфейса.",
+        "Правильный ответ всегда зависит от выбранного CSS-фреймворка.",
+      ],
+      explain: `В этой теме важна рабочая модель: ${seed.mechanism}`,
+    },
+    {
+      prompt: `Как эта тема проявляется в реальной работе?`,
+      answer: seed.workplace,
+      distractors: [
+        "Она проявляется только в задачах на алгоритмы без связи с интерфейсом.",
+        "Её можно игнорировать, если проект собирается без ошибок.",
+        "Она важна только для серверной части приложения.",
+        "Она нужна только при написании README.",
+        "Она не влияет на поддержку проекта после первого релиза.",
+      ],
+      explain: "Pro-уровень требует связывать синтаксис с продуктовым сценарием и поддержкой кода.",
+    },
+    {
+      prompt: `Что стоит объяснить на собеседовании по теме «${seed.title}»?`,
+      answer: seed.mechanism,
+      distractors: [
+        "Только краткое определение из одного предложения.",
+        "Только название метода без примера.",
+        "Только то, что тема существует в браузере.",
+        "Только личное мнение без механики.",
+        "Только ссылку на документацию без объяснения.",
+      ],
+      explain: "Сильный ответ включает механизм, пример, ограничения и частую ошибку.",
+    },
+    {
+      prompt: "Какая ошибка здесь наиболее опасна?",
+      answer: seed.mistakes[0],
+      distractors: [
+        "Переименовать переменную без изменения поведения.",
+        "Добавить короткий комментарий к сложному месту.",
+        "Проверить код на мобильной ширине.",
+        "Разбить длинную функцию на маленькие шаги.",
+        "Сохранить пример задачи в IDE.",
+      ],
+      explain: "Ошибки из темы важны тем, что приводят к реальным багам, а не только к некрасивому коду.",
+    },
+    {
+      prompt: "Какой практический критерий показывает, что тема усвоена?",
+      answer: `Ты можешь применить её в сценарии: ${seed.taskScenario}`,
+      distractors: [
+        "Ты прочитал заголовок статьи и сразу перешёл дальше.",
+        "Ты можешь повторить только первый пример без изменений.",
+        "Ты знаешь, где находится кнопка копирования задачи.",
+        "Ты один раз открыл DevTools, но ничего не проверил.",
+        "Ты запомнил цвет карточки в интерфейсе.",
+      ],
+      explain: "Навык закрепляется, когда знание переносится в маленькую рабочую задачу.",
+    },
+    {
+      prompt: `Что лучше сделать после конспекта по теме «${seed.title}»?`,
+      answer: "Ответить на вопросы, решить задачу в IDE и проговорить типичные ошибки.",
+      distractors: [
+        "Сразу считать тему полностью закрытой.",
+        "Перейти к новой теме без проверки понимания.",
+        "Скопировать код, не запуская его.",
+        "Учить только определения без практики.",
+        "Удалить заметки после первого прочтения.",
+      ],
+      explain: "Платформа строится вокруг цикла: объяснение, проверка, задача, повторение.",
+    },
+    {
+      prompt: "Какой инструмент поможет проверить тему практически?",
+      answer: devToolFor(seed.area),
+      distractors: [
+        "Только просмотр миниатюры сайта.",
+        "Только изменение названия файла.",
+        "Только перезапуск компьютера.",
+        "Только отключение всех стилей.",
+        "Только чтение package.json.",
+      ],
+      explain: "Инструменты браузера показывают, что происходит с кодом в реальном интерфейсе.",
+    },
+    {
+      prompt: "Что отличает Pro-подход к этой теме?",
+      answer: "Понимание механики, ограничений, рабочего применения и связи с качеством UX.",
+      distractors: [
+        "Максимальное количество терминов без практики.",
+        "Случайная задача из другой темы.",
+        "Полное игнорирование мобильной версии.",
+        "Ответы без объяснения причин.",
+        "Одинаковый конспект для любой темы.",
+      ],
+      explain: "Front Gym Pro должен тренировать перенос знания в работу, а не только узнавание термина.",
+    },
+    {
+      prompt: "Что должно быть в хорошем ответе junior+ по этой теме?",
+      answer: `Механика, пример, ограничение и ошибка: ${seed.mistakes[0]}`,
+      distractors: [
+        "Только слово yes или no.",
+        "Только пример из чужого кода без объяснения.",
+        "Только субъективная оценка сложности.",
+        "Только ссылка на библиотеку.",
+        "Только перевод английского термина.",
+      ],
+      explain: "Junior+ отличается тем, что может объяснить последствия решения.",
+    },
+    {
+      prompt: "Как понять, что задача по теме подобрана правильно?",
+      answer: `Без понимания темы «${seed.title}» её нельзя решить чисто и устойчиво.`,
+      distractors: [
+        "Задача проверяет случайную строковую операцию.",
+        "Задача вообще не использует тему урока.",
+        "Задача решается только копированием ответа.",
+        "Задача не имеет примера ввода и вывода.",
+        "Задача оценивает только скорость печати.",
+      ],
+      explain: "Задачи Pro должны быть тематическими, иначе тренировка превращается в шум.",
+    },
+  ]);
+}
+
+function makeProTasks(seed: ProTopicSeed): Task[] {
+  return [
+    {
+      id: `task-${seed.id}-build`,
+      topicId: seed.id,
+      title: `Собрать рабочий пример: ${seed.title}`,
+      level: seed.level === "Core" ? "Junior" : "Junior+",
+      scenario: seed.taskScenario,
+      prompt: seed.taskPrompt,
+      input: seed.taskInput,
+      output: seed.taskOutput,
+      starter: seed.taskStarter,
+      checklist: [
+        "Решение использует именно тему урока, а не обходной путь.",
+        "Код можно запустить в IDE или браузерной консоли.",
+        "Есть проверка граничного случая.",
+        "Результат легко объяснить на собеседовании.",
+      ],
+    },
+    {
+      id: `task-${seed.id}-debug`,
+      topicId: seed.id,
+      title: `Разобрать ошибку: ${seed.title}`,
+      level: "Junior+",
+      scenario: `В рабочем проекте проявилась ошибка: ${seed.mistakes[0]}`,
+      prompt:
+        "Опиши, почему это ломает интерфейс или поддержку кода. Затем перепиши фрагмент так, чтобы решение стало предсказуемым, проверяемым и устойчивым на мобильной версии.",
+      input: `Проблема: ${seed.mistakes[0]}`,
+      output: "Короткое объяснение причины и исправленный фрагмент кода",
+      starter: seed.code,
+      checklist: [
+        "В объяснении названа причина, а не только симптом.",
+        "Исправление не создаёт новую глобальную зависимость.",
+        "Решение учитывает доступность или мобильный сценарий, если тема связана с интерфейсом.",
+        "После исправления можно сформулировать правило для будущих задач.",
+      ],
+    },
+  ];
+}
+
+function makeProTopic(seed: ProTopicSeed): Topic {
+  return {
+    id: seed.id,
+    area: seed.area,
+    title: seed.title,
+    subtitle: seed.subtitle,
+    level: seed.level,
+    duration: seed.duration,
+    outcome: `После темы ты сможешь применить «${seed.title}» в рабочем интерфейсе, объяснить механизм и пройти junior/junior+ вопрос без поверхностного ответа.`,
+    sources: sourceMap[seed.area],
+    sections: [
+      {
+        title: "Зачем это нужно",
+        body: [
+          seed.core,
+          seed.workplace,
+          "Для полноценного изучения важно не останавливаться на определении. Нужно понимать, какие баги тема предотвращает, как она влияет на поддержку проекта и как проверить решение в браузере.",
+        ],
+        bullets: seed.concepts,
+      },
+      {
+        title: "Как это работает",
+        body: [
+          seed.mechanism,
+          "На собеседовании хороший ответ строится от механики к примеру: сначала объясняем, что происходит, затем показываем код, затем называем ограничение и типичную ошибку.",
+        ],
+        code: seed.code,
+      },
+      {
+        title: "Рабочий сценарий",
+        body: [
+          seed.taskScenario,
+          "Критерий качества здесь простой: код должен быть понятен следующему разработчику, устойчив к изменению данных и проверяем без догадок.",
+        ],
+        workExample: seed.workplace,
+      },
+      {
+        title: "Как тренироваться",
+        body: [
+          "Сначала перескажи тему своими словами за одну минуту. Потом ответь на вопросы тренажёра без подсказок. После этого реши задачу в IDE и проверь себя по чеклисту.",
+          "Если ошибка повторяется, добавь тему в закладки и вернись к ней через день. Повторение слабых мест даёт больше роста, чем быстрое пролистывание новых статей.",
+        ],
+      },
+    ],
+    cheatsheet: [
+      ...seed.concepts,
+      `Рабочий маркер: ${seed.taskScenario}`,
+      `Проверка: ${devToolFor(seed.area)}.`,
+    ],
+    pitfalls: seed.mistakes,
+    interview: [
+      ...seed.interview,
+      `Как бы ты применил «${seed.title}» в реальном продукте?`,
+      `Какая ошибка чаще всего возникает в теме «${seed.title}»?`,
+    ],
+    quiz: makeProQuiz(seed),
+    tasks: makeProTasks(seed),
+  };
+}
+
+const proTopicSeeds: ProTopicSeed[] = [
+  {
+    id: "js-variables-types-conversion",
+    area: "js",
+    title: "Переменные, типы данных и преобразование типов",
+    subtitle: "Как хранить значения, понимать primitive/reference и не попадать в ловушки неявного приведения.",
+    level: "Core",
+    duration: "45 мин",
+    core: "Типы и преобразования определяют, какие операции безопасны и почему одинаковый с виду код может дать разные результаты.",
+    mechanism: "Примитивы хранят значение напрямую, объекты передаются по ссылке, а операторы могут запускать ToString, ToNumber или ToBoolean.",
+    workplace: "В форме оплаты важно не сравнивать строку из input как число без явного преобразования, иначе фильтры и расчёты начинают работать странно.",
+    code: `const amount = Number(input.value);
+
+if (Number.isNaN(amount)) {
+  showError("Введите число");
+}`,
+    concepts: ["let и const задают область видимости", "null и undefined означают разные отсутствия", "Number.isNaN надёжнее глобального isNaN", "объекты сравниваются по ссылке"],
+    mistakes: ["Полагаться на неявное преобразование при сравнении пользовательского ввода.", "Путать null и undefined в API-контрактах.", "Сравнивать объекты через === как структуры."],
+    interview: ["Какие примитивные типы есть в JavaScript?", "Почему [] == false может быть true?", "Чем null отличается от undefined?"],
+    taskScenario: "Фильтр каталога получает значения цены из input как строки и должен корректно сравнивать их с числовыми ценами товаров.",
+    taskPrompt: "Напиши normalizePrice(value), которая возвращает число или null, если значение нельзя безопасно использовать как цену.",
+    taskInput: "'1200', '', '12px', '0'",
+    taskOutput: "1200, null, null, 0",
+    taskStarter: `function normalizePrice(value) {
+  // явно преобразуй и проверь значение
+}`,
+  },
+  {
+    id: "js-operators-control-flow",
+    area: "js",
+    title: "Операторы, условия, циклы и управление потоком",
+    subtitle: "Как писать ветвления и повторения так, чтобы бизнес-правила читались без угадывания.",
+    level: "Core",
+    duration: "50 мин",
+    core: "Условия и циклы превращают данные в поведение, поэтому от их ясности зависит корректность интерфейса.",
+    mechanism: "if, switch, ternary, for, while и break/continue управляют тем, какие ветки кода выполняются и когда цикл должен остановиться.",
+    workplace: "В checkout-сценарии условия доставки, скидки и доступности кнопки должны быть выражены явно, иначе баги появляются на редких комбинациях данных.",
+    code: `function canSubmit(form) {
+  if (!form.email || !form.delivery) return false;
+  if (form.payment === "card" && !form.cardReady) return false;
+  return true;
+}`,
+    concepts: ["guard clauses уменьшают вложенность", "switch полезен для закрытого набора состояний", "for...of читабелен для перебора значений", "break и continue должны быть очевидны"],
+    mistakes: ["Писать глубокую пирамиду if там, где достаточно ранних возвратов.", "Забывать default в switch для неизвестного состояния.", "Менять массив во время обычного перебора без ясной причины."],
+    interview: ["Когда выбрать switch вместо if?", "Чем for...of отличается от for...in?", "Что такое short-circuit evaluation?"],
+    taskScenario: "Форма бронирования должна включать кнопку только при корректном наборе полей и выбранном способе оплаты.",
+    taskPrompt: "Напиши getSubmitState(form), которая возвращает 'disabled', 'ready' или 'needs-card' по набору условий.",
+    taskInput: "{ email: 'a@b.ru', delivery: true, payment: 'card', cardReady: false }",
+    taskOutput: "'needs-card'",
+    taskStarter: `function getSubmitState(form) {
+  // верни строковый статус
+}`,
+  },
+  {
+    id: "js-functions-params-recursion",
+    area: "js",
+    title: "Функции, параметры, rest/spread и рекурсия",
+    subtitle: "Как проектировать функции с понятным контрактом и не смешивать вычисление с побочными эффектами.",
+    level: "Interview",
+    duration: "60 мин",
+    core: "Функция должна иметь ясный вход, выход и ответственность, иначе код быстро становится неподдерживаемым.",
+    mechanism: "Параметры создают локальные привязки, rest собирает хвост аргументов, spread разворачивает коллекции, а рекурсия решает задачи через базовый случай и шаг.",
+    workplace: "В дизайн-системе форматтеры, валидаторы и фабрики обработчиков должны быть маленькими функциями, которые легко тестировать отдельно от UI.",
+    code: `function formatUserName({ firstName, lastName }) {
+  return [firstName, lastName].filter(Boolean).join(" ");
+}`,
+    concepts: ["чистая функция возвращает результат без внешних изменений", "default parameters задают безопасные значения", "rest отличается от arguments", "рекурсии нужен базовый случай"],
+    mistakes: ["Смешивать вычисление, DOM-обновление и сетевой запрос в одной функции.", "Использовать arguments в современном коде без причины.", "Писать рекурсию без условия остановки."],
+    interview: ["Что такое чистая функция?", "Чем rest отличается от spread?", "Когда рекурсия лучше цикла?"],
+    taskScenario: "Профиль пользователя приходит из API частично заполненным, а UI должен стабильно показать имя.",
+    taskPrompt: "Напиши getDisplayName(user), которая собирает имя из firstName, lastName или возвращает fallback.",
+    taskInput: "{ firstName: 'Ada', lastName: '' }",
+    taskOutput: "'Ada'",
+    taskStarter: `function getDisplayName(user, fallback = "Пользователь") {
+  // собери имя без лишних пробелов
+}`,
+  },
+  {
+    id: "js-objects-this-copying",
+    area: "js",
+    title: "Объекты, this, копирование и ссылки",
+    subtitle: "Почему объект не копируется через присваивание и как this зависит от вызова.",
+    level: "Interview",
+    duration: "65 мин",
+    core: "Объекты лежат за ссылками, а this определяется не местом объявления, а способом вызова функции.",
+    mechanism: "Присваивание объекта копирует ссылку, spread делает поверхностную копию, а this получает значение в момент вызова обычной функции.",
+    workplace: "В state-менеджменте нельзя мутировать объект настроек напрямую, потому что компоненты и кеши могут не увидеть изменение.",
+    code: `const nextUser = {
+  ...user,
+  profile: {
+    ...user.profile,
+    city: "Москва",
+  },
+};`,
+    concepts: ["объекты сравниваются по ссылке", "spread копирует только первый уровень", "this теряется при передаче метода", "structuredClone подходит не для всех значений"],
+    mistakes: ["Мутировать вложенный объект и ожидать, что все подписчики заметят изменение.", "Делать поверхностную копию там, где меняется вложенная структура.", "Передавать метод как callback и терять this."],
+    interview: ["Почему {} === {} возвращает false?", "Как сделать копию вложенного объекта?", "Как работает this в обычной функции?"],
+    taskScenario: "Настройки уведомлений пользователя нужно обновить без мутации исходного объекта.",
+    taskPrompt: "Напиши updateNotificationSettings(user, patch), которая возвращает новый объект пользователя с обновлённым вложенным settings.notifications.",
+    taskInput: "user.settings.notifications.email = false, patch = { email: true }",
+    taskOutput: "новый user, исходный объект не изменён",
+    taskStarter: `function updateNotificationSettings(user, patch) {
+  // не мутируй user
+}`,
+  },
+  {
+    id: "js-arrays-iteration-methods",
+    area: "js",
+    title: "Массивы и методы перебора",
+    subtitle: "map, filter, reduce, sort, find и выбор метода под задачу.",
+    level: "Core",
+    duration: "55 мин",
+    core: "Методы массивов позволяют выражать преобразование данных декларативно, но каждый метод имеет свой контракт.",
+    mechanism: "map возвращает массив той же длины, filter отбирает элементы, reduce сворачивает коллекцию, sort мутирует исходный массив.",
+    workplace: "В интерфейсе списка заказов нужно фильтровать, сортировать и группировать данные без случайной мутации исходного ответа API.",
+    code: `const visibleOrders = orders
+  .filter((order) => order.status !== "archived")
+  .toSorted((a, b) => b.createdAt - a.createdAt);`,
+    concepts: ["map не подходит для побочных эффектов", "filter сохраняет порядок", "sort мутирует исходный массив", "reduce должен иметь понятный accumulator"],
+    mistakes: ["Использовать map вместо forEach ради побочного эффекта.", "Мутировать массив через sort перед сохранением исходного порядка.", "Писать reduce, который сложнее простого цикла."],
+    interview: ["Чем map отличается от forEach?", "Почему sort может быть опасен?", "Когда reduce оправдан?"],
+    taskScenario: "Dashboard должен показать активные задачи, отсортированные по дедлайну, не меняя исходный массив.",
+    taskPrompt: "Напиши getVisibleTasks(tasks), которая отбирает невыполненные задачи и сортирует их по dueDate.",
+    taskInput: "[{ title: 'A', done: false, dueDate: 2 }, { title: 'B', done: true, dueDate: 1 }]",
+    taskOutput: "только невыполненные задачи в порядке дедлайна",
+    taskStarter: `function getVisibleTasks(tasks) {
+  // не мутируй исходный массив
+}`,
+  },
+  {
+    id: "js-strings-numbers-dates-json",
+    area: "js",
+    title: "Строки, числа, даты и JSON",
+    subtitle: "Как форматировать данные для интерфейса и не ломать локали, округления и сериализацию.",
+    level: "Production",
+    duration: "65 мин",
+    core: "Пользователь видит строки, деньги, даты и ошибки формата, поэтому базовые типы напрямую влияют на доверие к интерфейсу.",
+    mechanism: "Строки неизменяемы, числа имеют ограничения IEEE 754, Date хранит момент времени, JSON сериализует только поддерживаемые типы.",
+    workplace: "В личном кабинете дата платежа должна отображаться в локали пользователя, а сумма не должна терять копейки из-за float-арифметики.",
+    code: `const formatter = new Intl.NumberFormat("ru-RU", {
+  style: "currency",
+  currency: "RUB",
+});
+
+console.log(formatter.format(1290));`,
+    concepts: ["Intl лучше ручного форматирования дат и денег", "JSON.stringify пропускает undefined", "Date хранит timestamp", "деньги лучше хранить в минимальных единицах"],
+    mistakes: ["Склеивать дату руками вместо Intl.DateTimeFormat.", "Хранить деньги в float и делать много арифметики.", "Ожидать, что JSON сохранит функции и undefined."],
+    interview: ["Почему 0.1 + 0.2 не равно точно 0.3?", "Что делает JSON.stringify с undefined?", "Зачем нужен Intl?"],
+    taskScenario: "История платежей должна показать сумму и дату в формате ru-RU.",
+    taskPrompt: "Напиши formatPayment(payment), которая возвращает строку вида '1 290,00 ₽ · 18.08.2026'.",
+    taskInput: "{ amountKopecks: 129000, paidAt: '2026-08-18T10:00:00Z' }",
+    taskOutput: "'1 290,00 ₽ · 18.08.2026'",
+    taskStarter: `function formatPayment(payment) {
+  // используй Intl.NumberFormat и Intl.DateTimeFormat
+}`,
+  },
+  {
+    id: "js-modules-import-export",
+    area: "js",
+    title: "Модули, import/export и границы файлов",
+    subtitle: "Как разбивать код на независимые части и не создавать циклическую паутину зависимостей.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Модули задают архитектурные границы: что файл отдаёт наружу, а что остаётся внутренней реализацией.",
+    mechanism: "ES-модули имеют статические import/export, выполняются один раз и кэшируются, а bindings остаются живыми ссылками.",
+    workplace: "В большом frontend-проекте модуль filters.ts не должен импортировать UI-компонент, иначе бизнес-логика привяжется к React и станет труднее тестироваться.",
+    code: `// price.ts
+export function formatPrice(value) {
+  return new Intl.NumberFormat("ru-RU").format(value);
+}`,
+    concepts: ["named export удобен для набора утилит", "default export подходит для главной сущности файла", "баррель-файлы нужно использовать осторожно", "циклические зависимости усложняют запуск"],
+    mistakes: ["Экспортировать всё подряд и размывать публичный API модуля.", "Создавать циклические импорты между слоями.", "Смешивать UI, запросы и чистые функции в одном файле."],
+    interview: ["Чем named export отличается от default?", "Почему циклические импорты опасны?", "Что значит live binding в ES modules?"],
+    taskScenario: "В проекте нужно вынести форматирование цены и даты из компонента в отдельный модуль.",
+    taskPrompt: "Раздели код на formatters.ts и ProductCard.tsx так, чтобы компонент импортировал только готовые функции форматирования.",
+    taskInput: "ProductCard содержит форматирование inline",
+    taskOutput: "Компонент стал тоньше, форматтеры можно тестировать отдельно",
+    taskStarter: `// formatters.ts
+export function formatPrice(value) {
+  // реализация
+}`,
+  },
+  {
+    id: "js-errors-debugging",
+    area: "js",
+    title: "Ошибки, try/catch и отладка",
+    subtitle: "Как не скрывать проблемы и превращать сбой в понятный сценарий для пользователя.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Обработка ошибок нужна не для замалчивания сбоя, а для управляемого восстановления и диагностики.",
+    mechanism: "throw создаёт исключение, try/catch перехватывает синхронные ошибки и await-reject, finally выполняется независимо от результата.",
+    workplace: "Если загрузка профиля упала, интерфейс должен показать понятное состояние, дать повторить запрос и сохранить информацию для диагностики.",
+    code: `try {
+  const profile = await loadProfile();
+  renderProfile(profile);
+} catch (error) {
+  renderError("Не удалось загрузить профиль");
+}`,
+    concepts: ["не каждый catch должен молча продолжать", "finally удобен для снятия loading", "Error хранит message и stack", "ошибки async ловятся через await или catch"],
+    mistakes: ["Поймать ошибку и ничего не сделать.", "Показывать пользователю технический stack trace.", "Считать, что try/catch поймает ошибку внутри setTimeout без отдельной обработки."],
+    interview: ["Что попадает в catch у async/await?", "Зачем нужен finally?", "Почему нельзя глушить ошибки пустым catch?"],
+    taskScenario: "Кнопка 'Повторить' должна перезапускать загрузку данных после ошибки сети.",
+    taskPrompt: "Напиши loadWithState(fn), которая возвращает объект { status, data, error } для success/error-сценариев.",
+    taskInput: "fn resolved или rejected",
+    taskOutput: "{ status: 'success', data } или { status: 'error', error }",
+    taskStarter: `async function loadWithState(fn) {
+  // обработай success и error
+}`,
+  },
+  {
+    id: "js-map-set-weakmap-iterators",
+    area: "js",
+    title: "Map, Set, WeakMap и итераторы",
+    subtitle: "Когда Object и Array уже не лучший контейнер для данных.",
+    level: "Interview",
+    duration: "60 мин",
+    core: "Коллекции выбирают по задаче: уникальность, ключи-объекты, порядок обхода, слабые ссылки и итерация.",
+    mechanism: "Map хранит пары ключ-значение с любыми ключами, Set хранит уникальные значения, WeakMap не удерживает ключи от сборки мусора.",
+    workplace: "В UI-конструкторе можно хранить метаданные DOM-элементов в WeakMap, чтобы не мешать сборке мусора после удаления элемента.",
+    code: `const selectedIds = new Set();
+
+function toggle(id) {
+  selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id);
+}`,
+    concepts: ["Set удобен для уникальных значений", "Map лучше Object для произвольных ключей", "WeakMap подходит для приватных метаданных объекта", "итератор возвращает значения по протоколу next"],
+    mistakes: ["Использовать массив для частых проверок уникальности на больших данных.", "Ожидать, что WeakMap можно перебрать.", "Хранить объектные ключи в обычном объекте без понимания string coercion."],
+    interview: ["Чем Map отличается от Object?", "Почему WeakMap нельзя перебрать?", "Когда Set лучше массива?"],
+    taskScenario: "Таблица заказов должна быстро переключать выбранные строки и проверять, выбран ли заказ.",
+    taskPrompt: "Напиши createSelection(), которая использует Set и возвращает toggle(id), has(id), values().",
+    taskInput: "toggle('a'), toggle('b'), toggle('a')",
+    taskOutput: "values() возвращает ['b']",
+    taskStarter: `function createSelection() {
+  const selected = new Set();
+  // верни методы
+}`,
+  },
+  {
+    id: "js-generators-advanced-iteration",
+    area: "js",
+    title: "Генераторы и продвинутая итерация",
+    subtitle: "Как описывать ленивые последовательности и свои перебираемые объекты.",
+    level: "Interview",
+    duration: "55 мин",
+    core: "Генераторы позволяют выдавать значения по одному и строить ленивые последовательности без создания больших массивов.",
+    mechanism: "function* возвращает iterator, yield приостанавливает выполнение, а Symbol.iterator делает объект перебираемым.",
+    workplace: "В списке логов можно читать порции данных и обрабатывать их постепенно, не создавая огромный массив в памяти.",
+    code: `function* range(from, to) {
+  for (let value = from; value <= to; value += 1) {
+    yield value;
+  }
+}`,
+    concepts: ["yield приостанавливает генератор", "iterator имеет метод next", "iterable реализует Symbol.iterator", "ленивость экономит память"],
+    mistakes: ["Создавать большой массив там, где достаточно ленивого перебора.", "Путать iterable и iterator.", "Ожидать, что генератор выполнится полностью без обхода."],
+    interview: ["Что возвращает generator function?", "Чем iterable отличается от iterator?", "Когда генератор полезнее массива?"],
+    taskScenario: "Нужно постранично обойти диапазон id и отправить запросы пачками.",
+    taskPrompt: "Напиши генератор paginateIds(ids, size), который выдаёт массивы id фиксированного размера.",
+    taskInput: "[1,2,3,4,5], size = 2",
+    taskOutput: "[1,2], [3,4], [5]",
+    taskStarter: `function* paginateIds(ids, size) {
+  // yield пачки id
+}`,
+  },
+  {
+    id: "js-memory-garbage-refs",
+    area: "js",
+    title: "Память, ссылки и сборка мусора",
+    subtitle: "Почему утечки возникают даже в браузере с автоматическим управлением памятью.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Сборщик мусора освобождает недостижимые объекты, но код может случайно удерживать ссылки дольше нужного.",
+    mechanism: "Объект остаётся в памяти, пока достижим из корней: глобальных переменных, замыканий, DOM-ссылок, активных таймеров или подписок.",
+    workplace: "В SPA утечка часто появляется, когда компонент снят со страницы, но подписка или таймер продолжает ссылаться на его данные.",
+    code: `const timer = setInterval(updateClock, 1000);
+
+function cleanup() {
+  clearInterval(timer);
+}`,
+    concepts: ["достижимость важнее места создания", "таймеры и подписки удерживают callback", "WeakMap не удерживает ключи", "cleanup должен быть частью жизненного цикла"],
+    mistakes: ["Оставлять активный setInterval после ухода со страницы.", "Хранить DOM-узлы в глобальном массиве.", "Считать, что удаление элемента из DOM всегда освобождает все связанные ссылки."],
+    interview: ["Что такое достижимый объект?", "Как таймер может создать утечку?", "Зачем WeakMap помогает с метаданными?"],
+    taskScenario: "Виджет уведомлений открывается и закрывается много раз, но старые обработчики продолжают работать.",
+    taskPrompt: "Напиши createNotificationWidget(root), который возвращает destroy() и снимает обработчики/таймеры.",
+    taskInput: "widget.destroy()",
+    taskOutput: "после destroy обработчики больше не вызываются",
+    taskStarter: `function createNotificationWidget(root) {
+  // добавь обработчики и верни destroy
+}`,
+  },
+  {
+    id: "js-fetch-formdata-url",
+    area: "js",
+    title: "Fetch, FormData, URL и работа с API",
+    subtitle: "Как отправлять запросы, собирать параметры и обрабатывать статусы без хрупкого кода.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Работа с API требует явной обработки статусов, ошибок сети, параметров URL и формата тела запроса.",
+    mechanism: "fetch отклоняется при сетевой ошибке, но HTTP 400/500 остаются resolved Response; URLSearchParams безопасно кодирует query.",
+    workplace: "В каталоге товаров фильтры должны попадать в URL, чтобы ссылку можно было отправить, а ошибки API должны показывать понятное состояние.",
+    code: `const url = new URL("/api/products", location.origin);
+url.searchParams.set("query", query);
+
+const response = await fetch(url);
+if (!response.ok) throw new Error("API error");`,
+    concepts: ["response.ok проверяет HTTP-статус", "URLSearchParams кодирует параметры", "FormData подходит для форм и файлов", "AbortController отменяет устаревший запрос"],
+    mistakes: ["Считать, что fetch сам упадёт на HTTP 500.", "Склеивать query string руками без кодирования.", "Не отменять устаревшие запросы поиска."],
+    interview: ["Почему fetch не rejected на 404?", "Как отправить FormData?", "Как собрать query параметры безопасно?"],
+    taskScenario: "Страница поиска должна синхронизировать query и category с URL и отправить запрос к API.",
+    taskPrompt: "Напиши buildProductsUrl(filters), используя URL и URLSearchParams.",
+    taskInput: "{ query: 'phone case', category: 'accessories' }",
+    taskOutput: "/api/products?query=phone+case&category=accessories",
+    taskStarter: `function buildProductsUrl(filters) {
+  // верни строку URL
+}`,
+  },
+  {
+    id: "js-storage-cookies-indexeddb",
+    area: "js",
+    title: "LocalStorage, cookies, sessionStorage и IndexedDB",
+    subtitle: "Как выбрать браузерное хранилище под прогресс, настройки, сессию и офлайн-данные.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Хранилище выбирают по размеру данных, сроку жизни, безопасности и необходимости доступа на сервере.",
+    mechanism: "localStorage синхронный и простой, sessionStorage живёт в рамках вкладки, cookies уходят с запросами, IndexedDB подходит для больших структурированных данных.",
+    workplace: "Прогресс тренажёра можно хранить в localStorage, но токены доступа нельзя класть туда без понимания рисков.",
+    code: `const progress = JSON.parse(localStorage.getItem("progress") || "{}");
+progress[topicId] = score;
+localStorage.setItem("progress", JSON.stringify(progress));`,
+    concepts: ["localStorage блокирует поток на время операции", "cookies имеют атрибуты HttpOnly, Secure, SameSite", "IndexedDB асинхронная", "данные браузера может очистить пользователь"],
+    mistakes: ["Хранить чувствительные токены в localStorage без оценки угроз.", "Писать большие объёмы в localStorage на каждый keypress.", "Считать cookies просто клиентским хранилищем без сетевых последствий."],
+    interview: ["Чем localStorage отличается от sessionStorage?", "Когда использовать IndexedDB?", "Что делает SameSite у cookies?"],
+    taskScenario: "Тренажёр должен сохранить лучший результат по теме на устройстве пользователя.",
+    taskPrompt: "Напиши saveBestScore(topicId, score), которая обновляет только лучший результат и не затирает остальные темы.",
+    taskInput: "topicId = 'js', score = 8 при сохранённом best 6",
+    taskOutput: "best для js становится 8",
+    taskStarter: `function saveBestScore(topicId, score) {
+  // localStorage + JSON
+}`,
+  },
+  {
+    id: "js-web-workers-background",
+    area: "js",
+    title: "Web Workers и тяжёлые вычисления",
+    subtitle: "Как вынести работу из главного потока и не заморозить интерфейс.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Worker помогает выполнять тяжёлые вычисления вне главного UI-потока, чтобы клики и отрисовка оставались отзывчивыми.",
+    mechanism: "Worker запускается в отдельном контексте, общается через postMessage и получает данные копированием или transferable objects.",
+    workplace: "Если импорт CSV на 50 тысяч строк парсится на главном потоке, пользователь видит зависший интерфейс; worker позволяет показать прогресс.",
+    code: `const worker = new Worker("/parser-worker.js");
+worker.postMessage(file);
+worker.onmessage = (event) => {
+  renderPreview(event.data);
+};`,
+    concepts: ["worker не имеет прямого доступа к DOM", "postMessage передаёт данные между потоками", "transferable objects помогают с бинарными данными", "UI должен показывать прогресс и отмену"],
+    mistakes: ["Пытаться менять DOM внутри worker.", "Передавать огромные данные без понимания стоимости копирования.", "Не обрабатывать ошибку worker.onerror."],
+    interview: ["Что нельзя делать в Web Worker?", "Как worker общается с главным потоком?", "Когда worker оправдан?"],
+    taskScenario: "Пользователь загружает большой CSV, а интерфейс должен оставаться кликабельным.",
+    taskPrompt: "Опиши и реализуй минимальную схему main thread + worker для парсинга строк и отправки прогресса.",
+    taskInput: "file с 50000 строк",
+    taskOutput: "UI получает progress и итоговый массив ошибок",
+    taskStarter: `// main.js
+const worker = new Worker("/worker.js");
+// настрой сообщения`,
+  },
+  {
+    id: "js-security-xss-cors",
+    area: "js",
+    title: "Безопасность фронтенда: XSS, CORS и доверие к данным",
+    subtitle: "Как не превратить пользовательский ввод в уязвимость.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Frontend отвечает за безопасную вставку данных, корректную работу с origin и осторожное обращение с токенами.",
+    mechanism: "XSS возникает, когда непроверенные данные интерпретируются как код или HTML; CORS управляет тем, какие origin могут читать ответ.",
+    workplace: "Комментарии пользователей, markdown-превью и rich text редакторы требуют очистки HTML, иначе один комментарий может выполнить скрипт у других пользователей.",
+    code: `element.textContent = userComment;
+// не element.innerHTML = userComment`,
+    concepts: ["textContent безопаснее для обычного текста", "CORS не является авторизацией", "HttpOnly cookie недоступна JavaScript", "CSP снижает последствия XSS"],
+    mistakes: ["Вставлять пользовательский ввод через innerHTML.", "Считать CORS защитой от всех запросов.", "Хранить access token там, где его легко украсть через XSS."],
+    interview: ["Что такое XSS?", "Почему CORS не заменяет авторизацию?", "Чем textContent безопаснее innerHTML?"],
+    taskScenario: "Чат должен показать сообщение пользователя без выполнения HTML.",
+    taskPrompt: "Напиши renderMessage(container, message), которая безопасно добавляет текст и не интерпретирует HTML.",
+    taskInput: "\"<img src=x onerror=alert(1)>\"",
+    taskOutput: "текст показан как текст, скрипт не выполняется",
+    taskStarter: `function renderMessage(container, message) {
+  // создай элемент и используй textContent
+}`,
+  },
+  {
+    id: "css-selectors-pseudo",
+    area: "css",
+    title: "Селекторы, псевдоклассы и псевдоэлементы",
+    subtitle: "Как выбирать элементы точно и не повышать специфичность без причины.",
+    level: "Core",
+    duration: "55 мин",
+    core: "Селекторы задают область действия стилей, поэтому от их точности зависит поддерживаемость CSS.",
+    mechanism: "Классы, атрибуты, псевдоклассы и псевдоэлементы участвуют в специфичности и применяются к разным состояниям или частям элемента.",
+    workplace: "В форме нужно подсветить :focus-visible и :invalid, но не ломать все input на сайте длинными глобальными селекторами.",
+    code: `.field:focus-within {
+  border-color: #0b8f76;
+}
+
+.field::after {
+  content: attr(data-hint);
+}`,
+    concepts: [":focus-visible лучше для клавиатурного фокуса", "::before и ::after создают псевдоэлементы", "[data-state='open'] удобно для состояний", ":where снижает специфичность"],
+    mistakes: ["Писать селектор от body через всю вложенность.", "Стилизовать фокус так, что клавиатурный пользователь его не видит.", "Использовать псевдоэлементы для важного текста без доступной альтернативы."],
+    interview: ["Чем псевдокласс отличается от псевдоэлемента?", "Для чего нужен :focus-visible?", "Как работает селектор по атрибуту?"],
+    taskScenario: "Компонент поля ввода должен показывать фокус, ошибку и подсказку без JavaScript.",
+    taskPrompt: "Напиши CSS для .field, .field:focus-within и .field[data-state='error'].",
+    taskInput: "<label class='field' data-state='error'><input /></label>",
+    taskOutput: "видимый фокус и состояние ошибки",
+    taskStarter: `.field {
+  /* базовое состояние */
+}`,
+  },
+  {
+    id: "css-box-model-sizing",
+    area: "css",
+    title: "Блочная модель, box-sizing, margin и overflow",
+    subtitle: "Почему элемент занимает больше места, чем кажется, и как контролировать переполнение.",
+    level: "Core",
+    duration: "55 мин",
+    core: "Блочная модель определяет реальный размер элемента: content, padding, border и margin.",
+    mechanism: "box-sizing: border-box включает padding и border в заданную ширину, а overflow управляет содержимым, которое не помещается.",
+    workplace: "Мобильная карточка может вылететь за экран из-за width, padding и длинного слова, даже если визуально CSS выглядит простым.",
+    code: `* {
+  box-sizing: border-box;
+}
+
+.card {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}`,
+    concepts: ["margin находится вне border", "padding увеличивает область внутри элемента", "border-box упрощает расчёт ширины", "overflow-wrap спасает длинные строки"],
+    mistakes: ["Задавать width: 100% и большой padding без border-box.", "Скрывать overflow вместо исправления причины.", "Не проверять длинные URL и кодовые строки на телефоне."],
+    interview: ["Из чего состоит box model?", "Что меняет box-sizing?", "Почему появляется горизонтальный overflow?"],
+    taskScenario: "Карточка задачи на 360px вылезает за экран из-за длинной строки кода.",
+    taskPrompt: "Исправь CSS карточки так, чтобы текст переносился, а код прокручивался внутри pre.",
+    taskInput: "длинный URL внутри карточки",
+    taskOutput: "страница без горизонтального скролла",
+    taskStarter: `.task-card {
+  /* исправь размеры и переносы */
+}`,
+  },
+  {
+    id: "css-colors-typography",
+    area: "css",
+    title: "Цвет, контраст, типографика и читаемость",
+    subtitle: "Как сделать интерфейс не только красивым, но и читаемым в реальной среде.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Цвет и типографика управляют вниманием, иерархией и доступностью интерфейса.",
+    mechanism: "Размер, line-height, font-weight, contrast ratio и состояние ссылок/кнопок вместе определяют, насколько легко пользоваться страницей.",
+    workplace: "В учебной платформе длинный конспект должен читаться на телефоне без усталости: нормальная длина строки, контраст и предсказуемые размеры.",
+    code: `.article {
+  color: #151716;
+  font-size: 1rem;
+  line-height: 1.65;
+}`,
+    concepts: ["line-height важен для длинного текста", "контраст нужен не только для кнопок", "цвет не должен быть единственным сигналом", "длина строки влияет на скорость чтения"],
+    mistakes: ["Делать серый текст слишком светлым.", "Показывать ошибку только красным цветом без текста.", "Использовать огромные заголовки внутри маленьких карточек."],
+    interview: ["Что такое контрастность?", "Почему нельзя полагаться только на цвет?", "Как line-height влияет на чтение?"],
+    taskScenario: "Страница конспекта выглядит красиво, но текст утомляет на телефоне.",
+    taskPrompt: "Настрой стили .article так, чтобы длинные абзацы читались комфортно и имели достаточный контраст.",
+    taskInput: "несколько абзацев по 5-7 строк",
+    taskOutput: "читаемый текст без слипания строк",
+    taskStarter: `.article {
+  /* typography */
+}`,
+  },
+  {
+    id: "css-position-stacking",
+    area: "css",
+    title: "Position, z-index и контекст наложения",
+    subtitle: "Почему z-index не работает и как модалки оказываются под шапкой.",
+    level: "Interview",
+    duration: "60 мин",
+    core: "Позиционирование и stacking context определяют, где элемент находится в потоке и как перекрывает соседей.",
+    mechanism: "position меняет участие элемента в потоке, а z-index работает внутри контекста наложения, который могут создавать transform, opacity, position и другие свойства.",
+    workplace: "В приложении tooltip может оказаться под sticky header не потому, что z-index маленький, а потому что он внутри другого stacking context.",
+    code: `.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}`,
+    concepts: ["relative сохраняет место в потоке", "absolute позиционируется относительно ближайшего positioned ancestor", "fixed привязан к viewport", "transform может создать stacking context"],
+    mistakes: ["Повышать z-index до огромных чисел, не проверив stacking context.", "Делать tooltip внутри контейнера с overflow: hidden.", "Использовать absolute для основной раскладки страницы."],
+    interview: ["Когда z-index не работает?", "Чем absolute отличается от fixed?", "Что создаёт stacking context?"],
+    taskScenario: "Dropdown в таблице обрезается контейнером и скрывается под соседней карточкой.",
+    taskPrompt: "Опиши причину и предложи CSS/DOM-решение для слоя выпадающего меню.",
+    taskInput: "dropdown внутри overflow: hidden контейнера",
+    taskOutput: "меню видно поверх нужного слоя",
+    taskStarter: `.dropdown {
+  position: absolute;
+  z-index: 10;
+}`,
+  },
+  {
+    id: "css-transitions-animations",
+    area: "css",
+    title: "Transitions, animations и prefers-reduced-motion",
+    subtitle: "Как добавлять движение, не ухудшая доступность и производительность.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Анимация должна помогать понять изменение состояния, а не отвлекать или ломать доступность.",
+    mechanism: "transition описывает переход между состояниями, keyframes задаёт временную шкалу, а prefers-reduced-motion учитывает настройки пользователя.",
+    workplace: "В тренажёре можно мягко подсветить правильный ответ, но нельзя делать длинную тряску, если пользователь просит уменьшить движение.",
+    code: `@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}`,
+    concepts: ["transform и opacity обычно дешевле для анимации", "transition требует начального и конечного состояния", "animation может быть бесконечной", "reduced motion нужно уважать"],
+    mistakes: ["Анимировать width/height без необходимости.", "Игнорировать prefers-reduced-motion.", "Использовать движение как единственный способ сообщить о результате."],
+    interview: ["Чем transition отличается от animation?", "Почему transform часто лучше top/left?", "Что делает prefers-reduced-motion?"],
+    taskScenario: "Кнопка ответа должна показывать correct/wrong состояние мягко и доступно.",
+    taskPrompt: "Напиши CSS для состояния ответа с transition и отдельным правилом prefers-reduced-motion.",
+    taskInput: ".answer.right и .answer.wrong",
+    taskOutput: "состояние заметно без агрессивного движения",
+    taskStarter: `.answer {
+  transition: background-color 160ms ease;
+}`,
+  },
+  {
+    id: "css-custom-properties",
+    area: "css",
+    title: "Кастомные свойства и дизайн-токены",
+    subtitle: "Как управлять цветами, отступами и темами без копирования значений.",
+    level: "Production",
+    duration: "55 мин",
+    core: "CSS-переменные позволяют хранить дизайн-решения в одном месте и менять их через каскад.",
+    mechanism: "Custom properties наследуются, вычисляются во время применения стилей и могут менять значение в зависимости от темы, контейнера или состояния.",
+    workplace: "В платформе обучения можно менять акцент раздела JS/CSS/React через переменные, не переписывая стили каждой карточки.",
+    code: `:root {
+  --accent: #0b8f76;
+}
+
+.topic-card {
+  border-color: var(--accent);
+}`,
+    concepts: ["var() подставляет значение свойства", "fallback помогает при отсутствии переменной", "переменные наследуются", "токены отделяют смысл от конкретного цвета"],
+    mistakes: ["Называть переменные по цвету вместо роли.", "Разбрасывать одинаковые значения без токенов.", "Забывать fallback для переиспользуемых компонентов."],
+    interview: ["Чем CSS-переменная отличается от Sass-переменной?", "Как работает fallback в var?", "Почему токены называют по роли?"],
+    taskScenario: "Карточки разделов должны менять акцентный цвет по data-area без дублирования компонента.",
+    taskPrompt: "Напиши CSS с --accent для [data-area='js'], [data-area='css'] и общей .topic-card.",
+    taskInput: "<article class='topic-card' data-area='js'>",
+    taskOutput: "один компонент, разные акценты",
+    taskStarter: `.topic-card {
+  border-color: var(--accent);
+}`,
+  },
+  {
+    id: "css-media-container-queries",
+    area: "css",
+    title: "Media queries, container queries и responsive strategy",
+    subtitle: "Как проектировать адаптивность на уровне страницы и компонента.",
+    level: "Production",
+    duration: "65 мин",
+    core: "Адаптивность должна быть стратегией интерфейса, а не набором случайных breakpoint.",
+    mechanism: "Media query реагирует на viewport и окружение, container query реагирует на размер контейнера, а mobile first строит интерфейс от узкого экрана.",
+    workplace: "Одна карточка курса может жить в широкой сетке, сайдбаре и модалке, поэтому ей лучше адаптироваться к контейнеру.",
+    code: `.course-card {
+  container-type: inline-size;
+}
+
+@container (min-width: 420px) {
+  .course-card__body {
+    display: grid;
+  }
+}`,
+    concepts: ["mobile first снижает количество переопределений", "breakpoint должен быть связан с контентом", "container queries усиливают компоненты", "touch targets важны на телефоне"],
+    mistakes: ["Выбирать breakpoint только по модели устройства.", "Делать desktop layout базовым и потом чинить телефон.", "Забывать проверить длинный русский текст."],
+    interview: ["Как выбрать breakpoint?", "Когда нужна container query?", "Что такое mobile first?"],
+    taskScenario: "Карточка урока должна быть компактной в сайдбаре и подробной в основной сетке.",
+    taskPrompt: "Сделай .lesson-card адаптивной через container query.",
+    taskInput: "один HTML-компонент в двух контейнерах",
+    taskOutput: "компонент меняет внутреннюю раскладку по ширине контейнера",
+    taskStarter: `.lesson-card {
+  container-type: inline-size;
+}`,
+  },
+  {
+    id: "css-logical-properties",
+    area: "css",
+    title: "Логические свойства и международные интерфейсы",
+    subtitle: "Как писать CSS, который не ломается при другом направлении письма.",
+    level: "Production",
+    duration: "45 мин",
+    core: "Логические свойства описывают направление относительно потока текста, а не только left/right/top/bottom.",
+    mechanism: "margin-inline, padding-block, inset-inline-start и border-block зависят от writing mode и direction.",
+    workplace: "Если продукт выходит на рынки с RTL-языками, left/right в компонентах превращаются в источник багов.",
+    code: `.card {
+  padding-block: 16px;
+  padding-inline: 20px;
+}`,
+    concepts: ["inline соответствует направлению строки", "block соответствует направлению блоков", "dir='rtl' меняет inline-start", "логические свойства повышают переиспользуемость"],
+    mistakes: ["Жёстко использовать left/right в компоненте, который должен поддержать RTL.", "Смешивать физические и логические свойства без причины.", "Проверять только русскую и английскую локаль."],
+    interview: ["Что такое inline-start?", "Зачем нужны logical properties?", "Как dir влияет на раскладку?"],
+    taskScenario: "Компонент уведомления должен одинаково работать в LTR и RTL интерфейсе.",
+    taskPrompt: "Перепиши CSS с margin-left/padding-right на логические свойства.",
+    taskInput: ".notice { margin-left: 16px; padding-right: 20px; }",
+    taskOutput: "стили работают при dir='rtl'",
+    taskStarter: `.notice {
+  /* logical properties */
+}`,
+  },
+  {
+    id: "css-forms-ui-states",
+    area: "css",
+    title: "Стилизация форм и состояний интерфейса",
+    subtitle: "Focus, disabled, invalid, loading и визуальная обратная связь.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Форма должна визуально сообщать состояние, не ломая нативное поведение и доступность.",
+    mechanism: "Псевдоклассы :focus-visible, :disabled, :invalid, :required и data-state позволяют связать состояние с CSS без лишнего JavaScript.",
+    workplace: "В форме регистрации пользователь должен видеть, где фокус, какие поля ошибочны и почему кнопка недоступна.",
+    code: `input:focus-visible {
+  outline: 3px solid #9adfcb;
+}
+
+input:invalid {
+  border-color: #b3261e;
+}`,
+    concepts: ["focus outline нельзя просто удалять", "disabled состояние должно отличаться визуально", "ошибка требует текста, не только цвета", "touch target должен быть удобным"],
+    mistakes: ["Убирать outline без замены.", "Делать disabled-кнопку похожей на активную.", "Показывать ошибку только цветом."],
+    interview: ["Как стилизовать фокус доступно?", "Чем disabled отличается от aria-disabled?", "Почему placeholder не заменяет label?"],
+    taskScenario: "Форма профиля должна показать ошибку email и сохранить видимый фокус клавиатуры.",
+    taskPrompt: "Напиши CSS для input, input:focus-visible, input:invalid и .error-text.",
+    taskInput: "<input type='email' required>",
+    taskOutput: "понятный фокус и ошибка с текстом",
+    taskStarter: `input {
+  /* base */
+}`,
+  },
+  {
+    id: "css-scroll-snap-overflow",
+    area: "css",
+    title: "Scroll, overflow, sticky и scroll snap",
+    subtitle: "Как управлять прокруткой без сломанного мобильного UX.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Прокрутка является частью интерфейса, поэтому overflow, sticky и snap требуют проверки на реальных размерах.",
+    mechanism: "overflow создаёт область прокрутки, position: sticky работает внутри scroll container, scroll-snap помогает фиксировать элементы при прокрутке.",
+    workplace: "Горизонтальная лента тем должна прокручиваться внутри себя, но не расширять всю страницу на телефоне.",
+    code: `.topic-list {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.topic-card {
+  scroll-snap-align: start;
+}`,
+    concepts: ["sticky зависит от ближайшего scroll container", "overflow hidden может обрезать dropdown", "scroll snap требует осторожности", "overscroll-behavior управляет цепочкой прокрутки"],
+    mistakes: ["Создать горизонтальную ленту, которая увеличивает scrollWidth всей страницы.", "Ждать sticky внутри контейнера с неожиданным overflow.", "Обрезать focus ring через overflow hidden."],
+    interview: ["Почему position: sticky не работает?", "Чем overflow auto отличается от hidden?", "Для чего scroll snap?"],
+    taskScenario: "Лента карточек на телефоне должна прокручиваться внутри блока и не создавать горизонтальный скролл страницы.",
+    taskPrompt: "Сверстай .rail с overflow-x и карточками фиксированной безопасной ширины.",
+    taskInput: "8 карточек тем",
+    taskOutput: "documentElement.scrollWidth равен clientWidth",
+    taskStarter: `.rail {
+  /* horizontal scroll */
+}`,
+  },
+  {
+    id: "css-transforms-filters-effects",
+    area: "css",
+    title: "Transform, filter и визуальные эффекты",
+    subtitle: "Как использовать эффекты точечно и не ухудшать производительность.",
+    level: "Production",
+    duration: "50 мин",
+    core: "Визуальные эффекты должны подчёркивать состояние интерфейса и не превращать страницу в тяжёлую анимационную витрину.",
+    mechanism: "transform меняет визуальное положение без влияния на поток, filter и backdrop-filter могут быть дорогими, will-change нужно применять редко.",
+    workplace: "Hover-карточка урока может слегка подняться через transform, но blur-фон на каждом блоке способен замедлить слабый телефон.",
+    code: `.lesson-card:hover {
+  transform: translateY(-2px);
+}`,
+    concepts: ["transform не меняет layout соседей", "filter может быть дорогим", "will-change не нужно держать постоянно", "эффект должен иметь fallback"],
+    mistakes: ["Ставить will-change на десятки элементов.", "Использовать blur как основной фон интерфейса.", "Анимировать тяжёлые filter без проверки FPS."],
+    interview: ["Почему transform часто дешевле top?", "Когда will-change вреден?", "Чем filter отличается от opacity?"],
+    taskScenario: "Карточки курса должны иметь лёгкий hover-эффект без смещения соседей.",
+    taskPrompt: "Напиши hover/focus-visible эффект через transform и box-shadow с reduced-motion fallback.",
+    taskInput: ".lesson-card",
+    taskOutput: "эффект заметен, layout не прыгает",
+    taskStarter: `.lesson-card {
+  transition: transform 160ms ease;
+}`,
+  },
+  {
+    id: "css-methodology-design-system",
+    area: "css",
+    title: "CSS-методологии, компоненты и дизайн-система",
+    subtitle: "Как договориться о стиле CSS в команде и не утонуть в исключениях.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Методология CSS нужна, чтобы компоненты были предсказуемыми, переиспользуемыми и не конфликтовали на больших страницах.",
+    mechanism: "BEM, utility-подход, CSS Modules, слои и токены решают разные части проблемы: область действия, переопределение и единый язык дизайна.",
+    workplace: "В платформе с десятками карточек и режимов нужно иметь один стандарт button/card/input, иначе каждый экран начинает жить сам по себе.",
+    code: `.button {}
+.button--primary {}
+.button[aria-busy="true"] {}`,
+    concepts: ["компонент должен иметь понятный публичный API классов", "модификаторы описывают варианты", "токены задают общие решения", "utilities применяются точечно"],
+    mistakes: ["Создавать новый стиль кнопки на каждой странице.", "Смешивать layout страницы и внутренности компонента.", "Делать модификаторы, которые зависят от случайной вложенности."],
+    interview: ["Что решает BEM?", "Когда полезны CSS Modules?", "Как дизайн-токены помогают команде?"],
+    taskScenario: "В проекте появились пять разных primary-кнопок с разными отступами.",
+    taskPrompt: "Опиши API .button и .button--primary/.button--secondary, затем перепиши два примера на единый компонент.",
+    taskInput: "разные классы .save-btn, .submitButton",
+    taskOutput: "единый button API",
+    taskStarter: `.button {
+  /* base component */
+}`,
+  },
+  {
+    id: "css-modern-functions",
+    area: "css",
+    title: "Современные CSS-функции: min, max, clamp, color-mix",
+    subtitle: "Как писать гибкие значения без россыпи медиазапросов.",
+    level: "Production",
+    duration: "50 мин",
+    core: "Современные функции позволяют выразить адаптивное значение прямо в CSS и сделать дизайн устойчивее.",
+    mechanism: "clamp задаёт минимум, желаемое значение и максимум; min/max выбирают ограничение; color-mix смешивает цвета в заданном пространстве.",
+    workplace: "Ширина контейнера, размер отступов и оттенки состояний могут адаптироваться плавно, а не прыгать на каждом breakpoint.",
+    code: `.content {
+  width: min(100% - 24px, 1120px);
+  padding-block: clamp(24px, 5vw, 72px);
+}`,
+    concepts: ["clamp ограничивает гибкое значение", "min полезен для безопасной ширины", "max задаёт нижний предел", "color-mix помогает строить состояния от токенов"],
+    mistakes: ["Использовать viewport-based font-size для всего текста.", "Писать 10 breakpoint там, где достаточно clamp.", "Забывать fallback для новых возможностей при необходимости."],
+    interview: ["Как работает clamp?", "Где полезен min?", "Зачем color-mix?"],
+    taskScenario: "Контейнер страницы должен быть гибким: не прилипать к краям телефона и не растягиваться бесконечно на десктопе.",
+    taskPrompt: "Напиши CSS для .container через min() и clamp().",
+    taskInput: "viewport 360px и 1440px",
+    taskOutput: "контейнер имеет безопасные поля и максимум ширины",
+    taskStarter: `.container {
+  /* min + clamp */
+}`,
+  },
+  {
+    id: "html-document-head-seo",
+    area: "html",
+    title: "Структура документа, head, meta и базовое SEO",
+    subtitle: "Как браузер, поиск и соцсети понимают страницу ещё до отрисовки интерфейса.",
+    level: "Production",
+    duration: "55 мин",
+    core: "head описывает документ для браузера, поисковиков, устройств и внешних сервисов.",
+    mechanism: "doctype включает standards mode, html lang задаёт язык, title и description описывают страницу, viewport управляет мобильным масштабом.",
+    workplace: "Если у учебной страницы нет нормального title и description, её хуже находят, хуже сохраняют и хуже открывают с телефона.",
+    code: `<head>
+  <title>Front Gym Pro</title>
+  <meta name="description" content="Платформа подготовки фронтендера" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>`,
+    concepts: ["doctype должен быть в начале документа", "lang помогает скринридерам", "viewport критичен для мобильной версии", "description влияет на сниппеты"],
+    mistakes: ["Забыть viewport и получить десктопную страницу на телефоне.", "Оставить одинаковый title на всех страницах.", "Не указать язык документа."],
+    interview: ["Зачем нужен doctype?", "Что делает meta viewport?", "Почему lang важен?"],
+    taskScenario: "Нужно подготовить HTML-страницу учебного модуля к публикации и нормальному отображению на телефоне.",
+    taskPrompt: "Напиши минимальный head с title, description, viewport, charset и favicon.",
+    taskInput: "название модуля и описание",
+    taskOutput: "валидный head для страницы",
+    taskStarter: `<!doctype html>
+<html lang="ru">
+  <head>
+    <!-- meta -->
+  </head>
+</html>`,
+  },
+  {
+    id: "html-text-semantics",
+    area: "html",
+    title: "Текстовая семантика: заголовки, абзацы, цитаты и inline-теги",
+    subtitle: "Как разметить содержание так, чтобы структура была понятна без CSS.",
+    level: "Core",
+    duration: "50 мин",
+    core: "Текстовая семантика создаёт структуру документа и помогает чтению, поиску и навигации вспомогательных технологий.",
+    mechanism: "Заголовки задают иерархию, p группирует абзацы, blockquote/cite/q описывают цитирование, strong/em передают смысловое выделение.",
+    workplace: "В учебнике важна предсказуемая структура: пользователь должен быстро сканировать тему по заголовкам и понимать, где пример, где предупреждение.",
+    code: `<article>
+  <h1>Замыкания</h1>
+  <p>Замыкание связывает функцию с окружением.</p>
+  <blockquote cite="https://example.com">...</blockquote>
+</article>`,
+    concepts: ["h1-h6 задают структуру, а не размер", "strong и b имеют разный смысл", "em передаёт акцент", "blockquote нужен для длинной цитаты"],
+    mistakes: ["Выбирать h3 только потому, что он визуально меньше.", "Использовать br для создания абзацев.", "Делать весь текст div-ами без структуры."],
+    interview: ["Почему нельзя прыгать по заголовкам без причины?", "Чем strong отличается от b?", "Когда нужен blockquote?"],
+    taskScenario: "Статья конспекта импортирована как набор div, и её нужно сделать семантической.",
+    taskPrompt: "Переразметь текст статьи с h1, h2, p, ul и blockquote там, где это уместно.",
+    taskInput: "div.title, div.subtitle, div.text",
+    taskOutput: "семантическая статья",
+    taskStarter: `<article>
+  <!-- структура статьи -->
+</article>`,
+  },
+  {
+    id: "html-links-navigation",
+    area: "html",
+    title: "Ссылки, навигация и download/target/rel",
+    subtitle: "Как отличать переход от действия и делать навигацию безопасной.",
+    level: "Core",
+    duration: "45 мин",
+    core: "Ссылка означает переход к ресурсу, а кнопка означает действие в текущем интерфейсе.",
+    mechanism: "a с href участвует в навигации, открывается в новой вкладке, копируется как ссылка и может иметь rel для безопасности.",
+    workplace: "В карточке источника внешняя ссылка должна открываться безопасно через target='_blank' и rel='noreferrer', а запуск тренировки должен быть button.",
+    code: `<a href="https://react.dev/learn" target="_blank" rel="noreferrer">
+  React Docs
+</a>`,
+    concepts: ["href делает элемент настоящей ссылкой", "button лучше для действия", "rel='noreferrer' защищает внешние переходы", "download предлагает сохранить файл"],
+    mistakes: ["Использовать div onClick для навигации.", "Открывать внешнюю ссылку в новой вкладке без rel.", "Ставить button там, где нужна настоящая ссылка."],
+    interview: ["Чем ссылка отличается от кнопки?", "Зачем rel='noopener' или noreferrer?", "Когда нужен download?"],
+    taskScenario: "В списке источников часть элементов ведёт наружу, часть запускает тренировку.",
+    taskPrompt: "Разметь источники через a, а запуск тренировки через button.",
+    taskInput: "React Docs URL и действие startTraining",
+    taskOutput: "семантически корректная навигация",
+    taskStarter: `<nav>
+  <!-- links and actions -->
+</nav>`,
+  },
+  {
+    id: "html-images-media-picture",
+    area: "html",
+    title: "Изображения, picture, audio/video и lazy loading",
+    subtitle: "Как показывать медиа быстро, адаптивно и доступно.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Медиа влияет на скорость, доступность и понимание контента, поэтому img, picture и video требуют правильных атрибутов.",
+    mechanism: "img загружает ресурс с alt, picture выбирает источник по условиям, loading='lazy' откладывает загрузку, width/height предотвращают скачок layout.",
+    workplace: "В статье с примерами интерфейсов скриншоты должны иметь размеры, понятный alt и адаптивные версии для разных экранов.",
+    code: `<picture>
+  <source srcset="/hero.avif" type="image/avif" />
+  <img src="/hero.jpg" alt="Интерфейс тренажёра" width="1200" height="800" loading="lazy" />
+</picture>`,
+    concepts: ["alt передаёт смысл изображения", "width и height уменьшают layout shift", "picture помогает выбрать формат", "captions важны для видео"],
+    mistakes: ["Оставлять важную картинку без alt.", "Не задавать размеры изображения.", "Автозапускать видео со звуком."],
+    interview: ["Когда alt должен быть пустым?", "Зачем width и height у img?", "Чем picture отличается от img srcset?"],
+    taskScenario: "Страница урока содержит обложку и несколько скриншотов, которые не должны замедлять первый экран.",
+    taskPrompt: "Разметь адаптивное изображение с picture, alt, width/height и lazy loading для нижних скриншотов.",
+    taskInput: "hero.avif, hero.webp, hero.jpg",
+    taskOutput: "быстрая и доступная загрузка изображений",
+    taskStarter: `<picture>
+  <!-- sources -->
+</picture>`,
+  },
+  {
+    id: "html-tables-data",
+    area: "html",
+    title: "Таблицы и табличные данные",
+    subtitle: "Когда table нужен, а когда таблицей нельзя верстать страницу.",
+    level: "Core",
+    duration: "50 мин",
+    core: "Таблица нужна для данных с отношениями строк и столбцов, а не для декоративной раскладки.",
+    mechanism: "caption описывает таблицу, th задаёт заголовки, scope связывает заголовок с row/col, thead/tbody структурируют группы.",
+    workplace: "В админке список платежей с датой, суммой и статусом должен быть table, чтобы его можно было читать и анализировать как данные.",
+    code: `<table>
+  <caption>Платежи за август</caption>
+  <thead><tr><th scope="col">Дата</th><th scope="col">Сумма</th></tr></thead>
+</table>`,
+    concepts: ["caption даёт имя таблице", "th и scope связывают заголовки", "thead/tbody помогают структуре", "таблица не заменяет CSS Grid для layout"],
+    mistakes: ["Верстать карточки через table.", "Не указывать заголовки столбцов.", "Скрывать caption так, что смысл таблицы теряется."],
+    interview: ["Когда использовать table?", "Зачем нужен scope у th?", "Чем caption полезен?"],
+    taskScenario: "Отчёт по результатам тренировки нужно показать как таблицу: тема, лучший счёт, дата.",
+    taskPrompt: "Разметь таблицу результатов с caption, thead, tbody и scope.",
+    taskInput: "3 строки результатов",
+    taskOutput: "семантическая таблица",
+    taskStarter: `<table>
+  <!-- results -->
+</table>`,
+  },
+  {
+    id: "html-interactive-dialog-details-popover",
+    area: "html",
+    title: "Интерактивные элементы: dialog, details, summary и Popover API",
+    subtitle: "Как использовать нативные элементы вместо самописных виджетов там, где браузер уже помогает.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Нативные интерактивные элементы дают семантику, фокус и часть поведения без лишнего JavaScript.",
+    mechanism: "details/summary раскрывают контент, dialog создаёт модальное окно с методами showModal/close, popover подходит для всплывающих слоёв.",
+    workplace: "В учебной платформе решение задачи можно показывать в dialog, а подсказки и FAQ - через details.",
+    code: `<details>
+  <summary>Подсказка</summary>
+  <p>Проверь область видимости переменной.</p>
+</details>`,
+    concepts: ["summary должен быть понятным", "dialog требует управления фокусом и закрытием", "popover подходит для лёгких всплывающих блоков", "нативность не отменяет тестирование доступности"],
+    mistakes: ["Делать accordion из div без клавиатурной поддержки.", "Открывать dialog без понятной кнопки закрытия.", "Использовать popover для сложного маршрута страницы."],
+    interview: ["Чем dialog полезен?", "Когда подходит details?", "Что даёт Popover API?"],
+    taskScenario: "В карточке задачи нужна раскрываемая подсказка и модальное окно с чеклистом.",
+    taskPrompt: "Разметь hint через details, а checklist через dialog с кнопкой открытия и закрытия.",
+    taskInput: "подсказка и чеклист",
+    taskOutput: "нативный интерактивный UI",
+    taskStarter: `<details>
+  <summary>Подсказка</summary>
+</details>`,
+  },
+  {
+    id: "html-scripts-resources",
+    area: "html",
+    title: "script, defer, async, preload и загрузка ресурсов",
+    subtitle: "Как подключать код и ресурсы без блокировки страницы.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Порядок загрузки ресурсов влияет на скорость первого экрана и корректность запуска JavaScript.",
+    mechanism: "Обычный script блокирует парсинг, defer ждёт HTML и сохраняет порядок, async выполняется сразу после загрузки без гарантии порядка.",
+    workplace: "Аналитика может быть async, основной UI-скрипт часто defer, а критичный шрифт или hero-изображение можно preload при ясной пользе.",
+    code: `<script src="/app.js" defer></script>
+<script src="/analytics.js" async></script>`,
+    concepts: ["defer сохраняет порядок скриптов", "async не гарантирует порядок", "preload нужен для критичных ресурсов", "лишний preload может вредить"],
+    mistakes: ["Подключать основной скрипт без defer в head.", "Делать все скрипты async и ломать зависимости.", "preload-ить некритичные ресурсы."],
+    interview: ["Чем async отличается от defer?", "Что блокирует парсинг HTML?", "Когда нужен preload?"],
+    taskScenario: "Страница лениво грузит аналитику и основной интерактивный код.",
+    taskPrompt: "Выбери async/defer для двух скриптов и объясни порядок выполнения.",
+    taskInput: "main.js зависит от DOM, analytics.js независим",
+    taskOutput: "main.js defer, analytics.js async",
+    taskStarter: `<head>
+  <!-- scripts -->
+</head>`,
+  },
+  {
+    id: "html-template-data-attributes",
+    area: "html",
+    title: "template, data-* и декларативные связи с JavaScript",
+    subtitle: "Как хранить шаблоны и служебные данные в разметке без смешивания слоёв.",
+    level: "Core",
+    duration: "50 мин",
+    core: "template и data-* помогают связать HTML и JavaScript, не превращая классы CSS в источник бизнес-логики.",
+    mechanism: "template хранит неактивную разметку, которую можно клонировать, а dataset даёт доступ к data-атрибутам элемента.",
+    workplace: "В списке задач data-action помогает делегировать клики, а template позволяет создавать новые карточки с одинаковой структурой.",
+    code: `<button data-action="remove" data-id="42">Удалить</button>`,
+    concepts: ["template content не отображается сразу", "data-* хранит небольшие служебные значения", "dataset переводит kebab-case в camelCase", "data-action удобен для делегирования"],
+    mistakes: ["Хранить большие JSON-объекты в data-атрибуте.", "Использовать CSS-классы как единственный источник действий.", "Забывать, что data-* значения строки."],
+    interview: ["Для чего нужен template?", "Как читать data-user-id через dataset?", "Почему data-* не стоит использовать для больших данных?"],
+    taskScenario: "Todo-приложение должно добавлять новые элементы из template и удалять по data-action.",
+    taskPrompt: "Разметь template для todo-item и кнопку удаления с data-action.",
+    taskInput: "title задачи",
+    taskOutput: "новый li из template",
+    taskStarter: `<template id="todo-template">
+  <!-- todo item -->
+</template>`,
+  },
+  {
+    id: "html-validation-constraints",
+    area: "html",
+    title: "Constraint Validation API и нативная валидация",
+    subtitle: "Как использовать required, pattern, min/max и custom validity без лишней самописной логики.",
+    level: "Production",
+    duration: "60 мин",
+    core: "Нативная валидация помогает быстро получить базовые проверки, но требует понятных сообщений и правильной семантики.",
+    mechanism: "Атрибуты required, type, min, max, pattern и методы setCustomValidity/reportValidity участвуют в Constraint Validation API.",
+    workplace: "В форме регистрации можно использовать type='email' и required, а бизнес-правило пароля добавить через setCustomValidity.",
+    code: `password.setCustomValidity(
+  password.value.length < 8 ? "Минимум 8 символов" : "",
+);`,
+    concepts: ["required проверяет наличие значения", "type email включает базовую проверку формата", "setCustomValidity задаёт свою ошибку", "novalidate отключает нативную проверку формы"],
+    mistakes: ["Полагаться только на placeholder вместо label и сообщения.", "Дублировать простые HTML-проверки в JS без причины.", "Не очищать custom validity после исправления поля."],
+    interview: ["Что такое Constraint Validation API?", "Как задать свою ошибку поля?", "Зачем нужен reportValidity?"],
+    taskScenario: "Форма смены пароля должна проверить длину и совпадение двух полей.",
+    taskPrompt: "Реализуй проверку через setCustomValidity для confirmPassword.",
+    taskInput: "password='12345678', confirm='123'",
+    taskOutput: "форма показывает ошибку совпадения",
+    taskStarter: `function validatePasswords(password, confirmPassword) {
+  // setCustomValidity
+}`,
+  },
+  {
+    id: "html-i18n-lang-dir",
+    area: "html",
+    title: "Язык, направление текста и интернационализация HTML",
+    subtitle: "Как lang, dir, time и локали помогают международному продукту.",
+    level: "Production",
+    duration: "45 мин",
+    core: "Язык и направление текста являются частью смысла документа и влияют на произношение, поиск и раскладку.",
+    mechanism: "lang задаёт язык элемента, dir управляет направлением, time хранит машинно-читаемую дату, а CSS logical properties помогают раскладке.",
+    workplace: "Если внутри русской статьи есть английский термин или арабская цитата, lang/dir помогают скринридеру прочитать фрагмент правильно.",
+    code: `<p>Термин <span lang="en">closure</span> переводят как замыкание.</p>
+<time datetime="2026-08-18">18 августа 2026</time>`,
+    concepts: ["lang можно ставить не только на html", "dir='auto' полезен для пользовательского текста", "time datetime хранит машинный формат", "локаль влияет на формат даты"],
+    mistakes: ["Оставлять lang='en' на русской странице.", "Не учитывать RTL-текст в пользовательском контенте.", "Писать дату только как декоративную строку."],
+    interview: ["Зачем lang на фрагменте текста?", "Когда использовать dir='auto'?", "Для чего нужен datetime у time?"],
+    taskScenario: "Карточка комментария должна корректно показать текст пользователя на любом языке и дату публикации.",
+    taskPrompt: "Разметь комментарий с dir='auto', time datetime и lang там, где язык известен.",
+    taskInput: "comment.text, comment.createdAt",
+    taskOutput: "доступная и интернациональная разметка",
+    taskStarter: `<article class="comment">
+  <!-- text and time -->
+</article>`,
+  },
+  {
+    id: "html-svg-canvas-basics",
+    area: "html",
+    title: "SVG, canvas и графика в HTML",
+    subtitle: "Когда выбрать векторную разметку, а когда рисовать пиксели скриптом.",
+    level: "Interview",
+    duration: "55 мин",
+    core: "SVG и canvas решают разные задачи: SVG остаётся частью DOM, canvas рисует пиксельную сцену.",
+    mechanism: "SVG элементы доступны как DOM-узлы и масштабируются без потерь, canvas управляется через JavaScript API и не хранит отдельные фигуры в DOM.",
+    workplace: "Иконки и диаграммы с доступными подписями удобны в SVG, а редактор изображения или игра могут требовать canvas.",
+    code: `<svg role="img" aria-labelledby="chart-title" viewBox="0 0 100 40">
+  <title id="chart-title">Рост прогресса</title>
+  <path d="M0 30 L40 20 L80 8" />
+</svg>`,
+    concepts: ["SVG масштабируется как вектор", "canvas требует отдельной доступной альтернативы", "viewBox управляет системой координат", "title/aria помогают описать SVG"],
+    mistakes: ["Использовать canvas для простой иконки.", "Оставлять важный canvas без текстовой альтернативы.", "Встраивать огромный SVG без оптимизации."],
+    interview: ["Чем SVG отличается от canvas?", "Как сделать SVG доступным?", "Что делает viewBox?"],
+    taskScenario: "На dashboard нужно показать маленький график прогресса темы.",
+    taskPrompt: "Сделай SVG sparkline с title и viewBox.",
+    taskInput: "points = [10, 18, 14, 28]",
+    taskOutput: "доступный SVG-график",
+    taskStarter: `<svg viewBox="0 0 100 40">
+  <!-- path -->
+</svg>`,
+  },
+  {
+    id: "react-components-props-composition",
+    area: "react",
+    title: "Компоненты, props, children и композиция",
+    subtitle: "Как строить интерфейс из маленьких частей без жёсткого наследования.",
+    level: "Core",
+    duration: "60 мин",
+    core: "React-компонент должен описывать часть UI через props и композицию, а не скрывать слишком много сценариев внутри себя.",
+    mechanism: "Props передают данные сверху вниз, children позволяют вкладывать UI, композиция заменяет наследование для большинства интерфейсных задач.",
+    workplace: "В учебной платформе Card может принимать title, meta и children, чтобы одинаково использоваться для темы, задачи и результата.",
+    code: `function Card({ title, children }) {
+  return (
+    <section className="card">
+      <h2>{title}</h2>
+      {children}
+    </section>
+  );
+}`,
+    concepts: ["props read-only внутри компонента", "children передаёт вложенный UI", "композиция гибче наследования", "компонент должен иметь понятный контракт"],
+    mistakes: ["Мутировать props внутри компонента.", "Делать один mega-component на все сценарии.", "Передавать слишком много несвязанных флагов."],
+    interview: ["Почему props нельзя мутировать?", "Когда использовать children?", "Что такое композиция компонентов?"],
+    taskScenario: "Нужно сделать общий компонент Panel для конспекта, задачи и результата тренировки.",
+    taskPrompt: "Напиши Panel({ title, meta, children }) и используй его для двух разных блоков.",
+    taskInput: "title='Шпаргалка', children=<ul>...</ul>",
+    taskOutput: "один компонент, разные содержимые",
+    taskStarter: `function Panel({ title, children }) {
+  // render
+}`,
+  },
+  {
+    id: "react-events-forms",
+    area: "react",
+    title: "События, формы и controlled/uncontrolled поля",
+    subtitle: "Как управлять вводом пользователя без рассинхронизации UI.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Формы в React требуют ясного решения: какие данные управляются state, а какие читаются через ref или браузерную форму.",
+    mechanism: "Controlled input получает value из state и обновляет его через onChange; uncontrolled поле хранит значение в DOM и читается при необходимости.",
+    workplace: "Поиск по темам удобно делать controlled, потому что UI сразу зависит от query. Большая форма загрузки файла может быть проще через FormData.",
+    code: `const [query, setQuery] = useState("");
+
+<input value={query} onChange={(event) => setQuery(event.target.value)} />`,
+    concepts: ["controlled поле синхронизировано со state", "uncontrolled полезен для простых форм и файлов", "onSubmit должен preventDefault", "ошибки формы лучше хранить явно"],
+    mistakes: ["Смешивать value и defaultValue без понимания.", "Хранить каждую производную ошибку в отдельном state.", "Забывать name у полей, если используется FormData."],
+    interview: ["Что такое controlled component?", "Когда uncontrolled проще?", "Как обработать submit в React?"],
+    taskScenario: "Форма фильтра тем должна обновлять список при вводе и сбрасываться одной кнопкой.",
+    taskPrompt: "Сделай controlled input query и кнопку reset.",
+    taskInput: "query='react'",
+    taskOutput: "список фильтруется, reset очищает input",
+    taskStarter: `function TopicSearch({ topics }) {
+  // controlled input
+}`,
+  },
+  {
+    id: "react-lists-keys",
+    area: "react",
+    title: "Списки, key и сохранение состояния",
+    subtitle: "Почему index key ломает интерфейс и как React сопоставляет элементы.",
+    level: "Interview",
+    duration: "60 мин",
+    core: "key помогает React понять, какой элемент списка остался тем же между рендерами.",
+    mechanism: "При изменении массива React использует key для сопоставления старых и новых элементов; нестабильный key приводит к неправильному сохранению состояния.",
+    workplace: "Если в списке задач использовать index как key, после сортировки фокус, checkbox или локальное состояние могут переехать к другой строке.",
+    code: `{tasks.map((task) => (
+  <TaskRow key={task.id} task={task} />
+))}`,
+    concepts: ["key должен быть стабильным", "key нужен среди соседей списка", "index key опасен при сортировке", "key влияет на сохранение state"],
+    mistakes: ["Использовать Math.random() как key.", "Использовать index в динамическом списке.", "Думать, что key доступен внутри props компонента."],
+    interview: ["Зачем нужен key?", "Почему index key опасен?", "Когда key может сбросить состояние?"],
+    taskScenario: "Список вопросов можно перемешивать, но выбранные ответы не должны переезжать к другим вопросам.",
+    taskPrompt: "Исправь рендер списка вопросов, используя стабильный question.id как key.",
+    taskInput: "questions.sort(...)",
+    taskOutput: "состояние строк сохраняется корректно",
+    taskStarter: `{questions.map((question, index) => (
+  <Question key={index} question={question} />
+))}`,
+  },
+  {
+    id: "react-context",
+    area: "react",
+    title: "Context и передача данных через дерево",
+    subtitle: "Когда context упрощает код, а когда превращается в глобальное хранилище.",
+    level: "Production",
+    duration: "65 мин",
+    core: "Context нужен для данных, которые логически доступны многим компонентам на уровне дерева.",
+    mechanism: "Provider задаёт значение, useContext читает ближайшее значение сверху, а изменение value может перерендерить потребителей.",
+    workplace: "Тема интерфейса, текущий пользователь или настройки локали подходят для context; состояние каждого input формы обычно нет.",
+    code: `const ThemeContext = createContext("light");
+
+function Toolbar() {
+  const theme = useContext(ThemeContext);
+  return <div data-theme={theme} />;
+}`,
+    concepts: ["context передаёт данные без prop drilling", "value должен быть стабильным при необходимости", "context не заменяет всё состояние", "разделение context снижает лишние рендеры"],
+    mistakes: ["Класть в один context все данные приложения.", "Передавать новый объект value на каждый рендер без нужды.", "Использовать context там, где достаточно props."],
+    interview: ["Что решает Context?", "Почему context может вызвать лишние рендеры?", "Когда props лучше context?"],
+    taskScenario: "В приложении есть тема оформления, которую читают кнопки, панели и карточки.",
+    taskPrompt: "Создай ThemeContext и компонент ThemeProvider с переключением light/dark.",
+    taskInput: "initialTheme='dark'",
+    taskOutput: "дочерние компоненты читают тему через useContext",
+    taskStarter: `const ThemeContext = createContext(null);
+
+function ThemeProvider({ children }) {
+  // value
+}`,
+  },
+  {
+    id: "react-reducers-state-machines",
+    area: "react",
+    title: "useReducer и сложные состояния",
+    subtitle: "Как описывать переходы состояния явно, когда useState становится шумным.",
+    level: "Production",
+    duration: "70 мин",
+    core: "useReducer полезен, когда состояние имеет несколько связанных полей и понятные события перехода.",
+    mechanism: "Reducer получает state и action, возвращает новое состояние и должен оставаться чистой функцией.",
+    workplace: "Тренажёр вопроса имеет состояния answering, feedback, finished; reducer делает переходы явными и тестируемыми.",
+    code: `function reducer(state, action) {
+  switch (action.type) {
+    case "answer":
+      return { ...state, selected: action.index };
+    default:
+      return state;
+  }
+}`,
+    concepts: ["reducer должен быть чистым", "action описывает событие", "сложные переходы лучше централизовать", "dispatch не принимает новый state напрямую"],
+    mistakes: ["Делать сетевой запрос внутри reducer.", "Мутировать state в reducer.", "Использовать useReducer для одного boolean без причины."],
+    interview: ["Когда выбрать useReducer?", "Почему reducer должен быть чистым?", "Чем action отличается от state?"],
+    taskScenario: "Квиз должен переходить между вопросом, обратной связью и финальным экраном.",
+    taskPrompt: "Опиши reducer для quizState с actions answer, next, reset.",
+    taskInput: "answer correct, next",
+    taskOutput: "score и questionIndex обновляются предсказуемо",
+    taskStarter: `function quizReducer(state, action) {
+  switch (action.type) {
+    // cases
+  }
+}`,
+  },
+  {
+    id: "react-memo-performance",
+    area: "react",
+    title: "memo, useMemo, useCallback и производительность",
+    subtitle: "Как оптимизировать осознанно, а не оборачивать всё подряд.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Оптимизация React начинается с понимания причины рендера, а не с автоматического добавления memo.",
+    mechanism: "React.memo пропускает рендер при равных props, useMemo кеширует вычисление, useCallback кеширует ссылку на функцию.",
+    workplace: "В большом списке тем поиск может пересчитывать фильтр, но memo нужен только если вычисление или рендер реально дорогие.",
+    code: `const visibleTopics = useMemo(() => {
+  return topics.filter((topic) => topic.title.includes(query));
+}, [topics, query]);`,
+    concepts: ["memo помогает только при стабильных props", "useMemo не должен исправлять баги", "useCallback полезен для стабильной ссылки", "Profiler показывает реальные причины"],
+    mistakes: ["Оборачивать все компоненты в memo без измерений.", "Передавать inline object и удивляться, что memo не помогает.", "Использовать useMemo для побочных эффектов."],
+    interview: ["Чем useMemo отличается от useCallback?", "Когда React.memo бесполезен?", "Как измерить проблему производительности?"],
+    taskScenario: "Список из 1000 тем тормозит при вводе в поиск.",
+    taskPrompt: "Оптимизируй фильтрацию через useMemo и объясни, когда это действительно нужно.",
+    taskInput: "topics.length = 1000, query changes",
+    taskOutput: "фильтр пересчитывается только при изменении topics/query",
+    taskStarter: `function TopicList({ topics, query }) {
+  // visibleTopics
+}`,
+  },
+  {
+    id: "react-custom-hooks",
+    area: "react",
+    title: "Кастомные хуки и переиспользование логики",
+    subtitle: "Как вынести поведение без создания лишних компонентов.",
+    level: "Production",
+    duration: "65 мин",
+    core: "Кастомный хук переиспользует stateful-логику и эффекты, сохраняя компоненты тонкими.",
+    mechanism: "Хук является функцией, которая вызывает другие хуки по правилам React и возвращает данные/действия для компонента.",
+    workplace: "Прогресс темы, media query, debounce поиска и localStorage удобно вынести в отдельные хуки.",
+    code: `function useLocalStorageState(key, initialValue) {
+  const [value, setValue] = useState(initialValue);
+  return [value, setValue];
+}`,
+    concepts: ["имя хука начинается с use", "правила хуков сохраняются внутри кастомного хука", "хук возвращает API логики", "не каждый helper является хуком"],
+    mistakes: ["Вызывать хук внутри условия.", "Делать кастомный хук ради одной строки без смысла.", "Скрывать слишком много побочных эффектов без понятного имени."],
+    interview: ["Что такое кастомный хук?", "Почему имя должно начинаться с use?", "Что нельзя делать с хуками?"],
+    taskScenario: "Несколько компонентов должны хранить настройки в localStorage.",
+    taskPrompt: "Напиши useLocalStorageState(key, initialValue) с безопасным чтением и сохранением.",
+    taskInput: "key='theme', initialValue='light'",
+    taskOutput: "[theme, setTheme], значение сохраняется между перезагрузками",
+    taskStarter: `function useLocalStorageState(key, initialValue) {
+  // useState + localStorage
+}`,
+  },
+  {
+    id: "react-refs-dom",
+    area: "react",
+    title: "Refs, DOM API и императивные действия",
+    subtitle: "Когда нужно выйти за декларативную модель и как сделать это аккуратно.",
+    level: "Interview",
+    duration: "55 мин",
+    core: "ref нужен для доступа к DOM-узлу или изменяемому значению, которое не должно запускать рендер.",
+    mechanism: "useRef возвращает стабильный объект .current, изменение current не вызывает рендер, а DOM ref заполняется после рендера.",
+    workplace: "Фокус поля после открытия поиска, измерение размера элемента и управление video требуют ref.",
+    code: `const inputRef = useRef(null);
+
+function focusSearch() {
+  inputRef.current?.focus();
+}`,
+    concepts: ["ref сохраняет значение между рендерами", "изменение ref не ререндерит компонент", "DOM ref доступен после commit", "ref не должен заменять state для UI"],
+    mistakes: ["Хранить отображаемое состояние только в ref.", "Читать DOM ref до монтирования.", "Использовать ref вместо нормального потока данных."],
+    interview: ["Чем ref отличается от state?", "Когда нужен useRef?", "Почему изменение ref не вызывает рендер?"],
+    taskScenario: "После открытия поиска на мобильном нужно автоматически сфокусировать input.",
+    taskPrompt: "Сделай компонент SearchPanel с ref и фокусом при открытии.",
+    taskInput: "open становится true",
+    taskOutput: "input получает focus",
+    taskStarter: `function SearchPanel({ open }) {
+  const inputRef = useRef(null);
+  // focus
+}`,
+  },
+  {
+    id: "react-data-fetching",
+    area: "react",
+    title: "Загрузка данных, статусы и гонки запросов",
+    subtitle: "Как показывать loading/error/success и не перезаписывать UI устаревшим ответом.",
+    level: "Production",
+    duration: "75 мин",
+    core: "Загрузка данных в UI должна описывать все состояния: ожидание, успех, пустой ответ, ошибка и отмена.",
+    mechanism: "Эффект может запускать запрос при изменении параметров, cleanup отменяет устаревший запрос, состояние хранит статус и результат.",
+    workplace: "При быстром поиске по темам старый медленный ответ не должен перезаписать свежий быстрый результат.",
+    code: `useEffect(() => {
+  const controller = new AbortController();
+  loadData({ signal: controller.signal });
+  return () => controller.abort();
+}, [query]);`,
+    concepts: ["loading и error должны быть явными", "cleanup отменяет устаревшую работу", "AbortController защищает от гонок", "пустой список не равен ошибке"],
+    mistakes: ["Хранить только data без статуса.", "Не отменять запрос при смене query.", "Показывать бесконечный loading после ошибки."],
+    interview: ["Как защититься от race condition?", "Что хранить в state загрузки?", "Зачем cleanup в эффекте загрузки?"],
+    taskScenario: "Поиск пользователей отправляет запрос на каждый query, но ответы приходят не по порядку.",
+    taskPrompt: "Реализуй useUsersSearch(query) со статусом loading/error/success и AbortController.",
+    taskInput: "query быстро меняется: 'a', 'ad', 'ada'",
+    taskOutput: "UI показывает результат только для актуального query",
+    taskStarter: `function useUsersSearch(query) {
+  // status + abort
+}`,
+  },
+  {
+    id: "react-error-boundaries",
+    area: "react",
+    title: "Error boundaries и восстановление интерфейса",
+    subtitle: "Как не дать ошибке одного виджета сломать всю страницу.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Error boundary ловит ошибки рендера ниже по дереву и позволяет показать fallback UI.",
+    mechanism: "Классический error boundary реализует getDerivedStateFromError/componentDidCatch, а ошибки событий и async-кода нужно обрабатывать отдельно.",
+    workplace: "Если интерактивный виджет задачи упал, остальная платформа должна продолжить работать и предложить перезагрузить блок.",
+    code: `class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+}`,
+    concepts: ["boundary ловит ошибки рендера потомков", "ошибки event handler ловятся отдельно", "fallback должен быть полезным", "логирование помогает диагностике"],
+    mistakes: ["Считать, что boundary поймает любую async-ошибку.", "Показывать пустой fallback без действия.", "Оборачивать всё одним boundary без локального восстановления."],
+    interview: ["Что ловит error boundary?", "Почему он не ловит event handler error?", "Где ставить boundaries?"],
+    taskScenario: "Блок интерактивной демки может упасть, но статья должна остаться доступной.",
+    taskPrompt: "Создай ErrorBoundary и оберни только DemoPanel.",
+    taskInput: "DemoPanel throws during render",
+    taskOutput: "показывается fallback для демки, статья видна",
+    taskStarter: `class ErrorBoundary extends React.Component {
+  // fallback state
+}`,
+  },
+  {
+    id: "react-routing-layouts",
+    area: "react",
+    title: "Routing, layouts и навигационная архитектура",
+    subtitle: "Как строить страницы, вложенные layout и состояние URL.",
+    level: "Production",
+    duration: "65 мин",
+    core: "Маршрутизация связывает состояние приложения с URL и определяет, что можно открыть, обновить и отправить ссылкой.",
+    mechanism: "Route выбирает экран по URL, layout сохраняет общие области интерфейса, query params хранят фильтры, а navigation state не должен заменять важный URL.",
+    workplace: "Если пользователь выбрал раздел React и тему useEffect, ссылка должна открывать именно это место, а не только главную страницу.",
+    code: `const params = new URLSearchParams(location.search);
+const area = params.get("area") ?? "all";`,
+    concepts: ["URL должен отражать важное состояние", "layout уменьшает дублирование", "query params подходят для фильтров", "route params подходят для сущностей"],
+    mistakes: ["Хранить выбранную тему только в локальном state без URL.", "Дублировать shell на каждой странице.", "Пихать секретные данные в query string."],
+    interview: ["Что хранить в URL?", "Чем route param отличается от query param?", "Зачем нужны layouts?"],
+    taskScenario: "Платформа должна открывать ссылку /topics/js-closures-scope и выбирать нужную тему.",
+    taskPrompt: "Опиши структуру routes для главной, темы и режима тренировки.",
+    taskInput: "/topics/react-render-state-effects?mode=train",
+    taskOutput: "открыта React-тема в режиме тренажёра",
+    taskStarter: `// routes
+// /topics/:topicId`,
+  },
+  {
+    id: "react-testing-components",
+    area: "react",
+    title: "Тестирование компонентов и пользовательских сценариев",
+    subtitle: "Как проверять UI по поведению, а не по внутренней реализации.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Хороший тест проверяет то, что важно пользователю: текст, роль, действие и результат.",
+    mechanism: "Компонентные тесты рендерят UI, находят элементы по роли/лейблу, выполняют событие и проверяют видимое изменение.",
+    workplace: "Тренажёр должен гарантировать, что после клика по ответу появляется объяснение и кнопка следующего вопроса.",
+    code: `expect(screen.getByRole("button", { name: "Следующий вопрос" })).toBeVisible();`,
+    concepts: ["искать элементы лучше по роли", "тест должен имитировать пользователя", "моки нужны для внешних зависимостей", "snapshot не заменяет поведенческий тест"],
+    mistakes: ["Тестировать className вместо поведения.", "Делать хрупкие селекторы по DOM-структуре.", "Мокать всё так, что тест перестаёт проверять интеграцию."],
+    interview: ["Что проверять в UI-тесте?", "Почему role queries полезны?", "Когда нужен mock?"],
+    taskScenario: "Нужно проверить, что квиз показывает объяснение после выбора ответа.",
+    taskPrompt: "Напиши тест сценария: открыть вопрос, выбрать ответ, увидеть feedback.",
+    taskInput: "question with 6 options",
+    taskOutput: "feedback visible",
+    taskStarter: `test("shows feedback after answer", async () => {
+  // render and click
+});`,
+  },
+  {
+    id: "react-typescript-props",
+    area: "react",
+    title: "React и TypeScript: типизация props, state и событий",
+    subtitle: "Как сделать компонент понятным ещё до запуска приложения.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Типы фиксируют контракт компонента и помогают ловить ошибки данных до runtime.",
+    mechanism: "Props описываются type/interface, union ограничивает варианты, события имеют типы React.ChangeEvent/MouseEvent, generic помогает переиспользуемым компонентам.",
+    workplace: "Если TaskCard требует task.level из ограниченного набора, TypeScript не даст случайно передать 'hard' вместо 'Junior+'.",
+    code: `type TaskCardProps = {
+  title: string;
+  level: "Junior" | "Junior+";
+  onCopy: () => void;
+};`,
+    concepts: ["union типы ограничивают варианты", "optional props требуют обработки", "event types улучшают обработчики", "discriminated union полезен для статусов"],
+    mistakes: ["Ставить any на все props.", "Не типизировать статус загрузки как union.", "Делать optional prop и забывать fallback."],
+    interview: ["Как типизировать props?", "Когда использовать union?", "Почему any опасен?"],
+    taskScenario: "Компонент ResultBadge должен принимать только status: 'success' | 'warning' | 'error'.",
+    taskPrompt: "Опиши тип props и компонент, который выбирает текст по status.",
+    taskInput: "status='success'",
+    taskOutput: "тип не принимает неизвестный status",
+    taskStarter: `type ResultBadgeProps = {
+  // status union
+};`,
+  },
+  {
+    id: "react-accessibility",
+    area: "react",
+    title: "Доступность React-интерфейсов",
+    subtitle: "Как сохранить семантику, фокус и имена элементов в компонентной модели.",
+    level: "Production",
+    duration: "70 мин",
+    core: "React не делает интерфейс доступным автоматически: компонент должен рендерить правильный HTML и управлять фокусом в сложных сценариях.",
+    mechanism: "JSX передаёт атрибуты в DOM, aria-* помогает описать сложные виджеты, а фокус нужно перемещать только там, где это ожидает пользователь.",
+    workplace: "В модальном окне задачи нужно вернуть фокус на кнопку открытия после закрытия и не прятать смысл за div-ами.",
+    code: `<button aria-expanded={open} aria-controls="task-panel">
+  Подсказка
+</button>`,
+    concepts: ["семантический HTML важнее ARIA", "aria-expanded сообщает состояние", "focus management нужен для modal", "кнопка должна быть button"],
+    mistakes: ["Делать кликабельный div вместо button.", "Добавлять ARIA без понимания роли.", "Терять фокус после закрытия модалки."],
+    interview: ["Как сделать React-кнопку доступной?", "Когда нужен aria-expanded?", "Как управлять фокусом в модалке?"],
+    taskScenario: "Панель подсказки раскрывается кнопкой и должна быть понятна скринридеру.",
+    taskPrompt: "Сделай HintToggle с aria-expanded, aria-controls и button.",
+    taskInput: "open true/false",
+    taskOutput: "состояние раскрытия доступно",
+    taskStarter: `function HintToggle() {
+  // button + controlled panel
+}`,
+  },
+  {
+    id: "react-architecture-feature-slices",
+    area: "react",
+    title: "Архитектура React-приложения и feature slices",
+    subtitle: "Как раскладывать компоненты, данные и логику по папкам, чтобы проект рос спокойно.",
+    level: "Production",
+    duration: "80 мин",
+    core: "Архитектура нужна, чтобы изменения в одной фиче не ломали весь проект и зависимости читались по структуре папок.",
+    mechanism: "Feature slice группирует UI, hooks, model и helpers вокруг пользовательской возможности, а shared-слой содержит переиспользуемые примитивы.",
+    workplace: "Фича тренировки может иметь свой quizReducer, компоненты Question/Feedback и тесты рядом, не смешиваясь с задачами и roadmap.",
+    code: `features/quiz/
+  ui/Question.tsx
+  model/quizReducer.ts
+  lib/calculateScore.ts`,
+    concepts: ["фича группируется вокруг сценария", "shared не должен знать о feature", "public API папки ограничивает импорты", "архитектура должна помогать, а не мешать"],
+    mistakes: ["Складывать все компоненты в одну папку components.", "Разрешать shared импортировать feature.", "Создавать сложную архитектуру для трёх файлов."],
+    interview: ["Как структурировать React-проект?", "Что такое feature slice?", "Почему важны направления зависимостей?"],
+    taskScenario: "Платформа выросла, и quiz, tasks, progress нужно разнести по feature-папкам.",
+    taskPrompt: "Предложи структуру папок для features/quiz, features/tasks, shared/ui.",
+    taskInput: "текущий single page",
+    taskOutput: "понятная схема модулей",
+    taskStarter: `src/
+  features/
+  shared/`,
+  },
+  {
+    id: "js-regexp-parsing-validation",
+    area: "js",
+    title: "RegExp, парсинг строк и валидация формата",
+    subtitle: "Как использовать регулярные выражения точечно и не превращать их в нечитаемую магию.",
+    level: "Interview",
+    duration: "55 мин",
+    core: "RegExp полезен для поиска и проверки текстовых паттернов, но не должен заменять полноценный парсер там, где есть сложная грамматика.",
+    mechanism: "Регулярное выражение сопоставляет строку с шаблоном, флаги меняют режим поиска, группы извлекают части совпадения, а методы test/match/replace решают разные задачи.",
+    workplace: "В форме профиля можно проверить простой формат промокода или извлечь id из строки, но email и URL лучше проверять через нативные типы и специальные API.",
+    code: `const promoPattern = /^[A-Z]{3}-\\d{4}$/;
+console.log(promoPattern.test("PRO-2026"));`,
+    concepts: ["test возвращает boolean", "группы помогают извлекать части строки", "флаг g влияет на состояние lastIndex", "сложный RegExp требует комментария или разбиения"],
+    mistakes: ["Писать огромный RegExp для HTML или сложного языка.", "Забывать про lastIndex у выражения с флагом g.", "Использовать RegExp там, где есть URL или input type."],
+    interview: ["Чем test отличается от match?", "Что делает флаг g?", "Почему RegExp не подходит для парсинга HTML?"],
+    taskScenario: "Форма купона принимает код вида ABC-1234 и должна показать понятную ошибку при неверном формате.",
+    taskPrompt: "Напиши validatePromoCode(value), которая возвращает { valid, error } и использует читаемый RegExp.",
+    taskInput: "'PRO-2026', 'bad-code'",
+    taskOutput: "{ valid: true } и { valid: false, error: 'Формат ABC-1234' }",
+    taskStarter: `function validatePromoCode(value) {
+  // RegExp + понятная ошибка
+}`,
+  },
+  {
+    id: "js-browser-rendering-performance",
+    area: "js",
+    title: "Браузерный рендеринг, layout, paint и производительность",
+    subtitle: "Как JavaScript, DOM и CSS вместе влияют на отзывчивость интерфейса.",
+    level: "Production",
+    duration: "80 мин",
+    core: "Производительность фронтенда зависит не только от скорости JS, но и от того, как изменения запускают style, layout, paint и composite.",
+    mechanism: "Браузер строит DOM и CSSOM, вычисляет стили, раскладывает элементы, рисует слои и композитит результат; частое чтение/запись layout-свойств может вызвать forced reflow.",
+    workplace: "Если при скролле список измеряет offsetHeight и тут же меняет style для сотен элементов, слабый телефон начнёт терять кадры.",
+    code: `const height = element.offsetHeight;
+requestAnimationFrame(() => {
+  element.style.transform = "translateY(4px)";
+});`,
+    concepts: ["layout отвечает за размеры и позиции", "paint рисует пиксели", "transform часто композитится дешевле", "Performance panel помогает увидеть длинные задачи"],
+    mistakes: ["Чередовать чтение layout и запись style в большом цикле.", "Оптимизировать без измерений.", "Игнорировать слабые мобильные устройства."],
+    interview: ["Что такое reflow/layout?", "Почему transform дешевле top?", "Как найти long task?"],
+    taskScenario: "При наведении на карточки список начинает дёргаться на мобильном устройстве.",
+    taskPrompt: "Найди причину layout thrashing и перепиши код так, чтобы чтения и записи DOM были разделены.",
+    taskInput: "100 карточек, чтение offsetWidth и запись style.width в одном цикле",
+    taskOutput: "меньше forced reflow, плавное взаимодействие",
+    taskStarter: `function updateCards(cards) {
+  // раздели чтение и запись
+}`,
+  },
+  {
+    id: "css-grid-deep-layout",
+    area: "css",
+    title: "CSS Grid глубже: области, auto-placement и subgrid",
+    subtitle: "Как строить сложные сетки без абсолютного позиционирования и лишней разметки.",
+    level: "Production",
+    duration: "75 мин",
+    core: "Grid позволяет описывать двумерную раскладку через линии, треки, области и автоматическое размещение элементов.",
+    mechanism: "grid-template-areas задаёт именованные зоны, auto-placement заполняет свободные ячейки, minmax управляет треками, а subgrid позволяет вложенному элементу наследовать сетку родителя.",
+    workplace: "Dashboard учебной платформы может держать сайдбар, контент, статистику и задачи в одной управляемой сетке без хаотичных wrappers.",
+    code: `.dashboard {
+  display: grid;
+  grid-template-areas:
+    "nav content stats"
+    "nav content tasks";
+}`,
+    concepts: ["grid areas улучшают читаемость layout", "auto-fit и auto-fill ведут себя по-разному", "minmax защищает треки от переполнения", "subgrid полезен для выравнивания вложенных карточек"],
+    mistakes: ["Использовать Grid как таблицу для любых данных.", "Задавать фиксированные треки, которые ломают 360px.", "Не проверять auto-placement при разном количестве карточек."],
+    interview: ["Чем auto-fit отличается от auto-fill?", "Когда нужны grid-template-areas?", "Что решает subgrid?"],
+    taskScenario: "Экран курса должен менять layout: на десктопе nav/content/stats, на телефоне один поток.",
+    taskPrompt: "Сверстай dashboard через grid-template-areas с мобильным переопределением.",
+    taskInput: "nav, content, stats, tasks",
+    taskOutput: "понятная сетка без горизонтального скролла",
+    taskStarter: `.dashboard {
+  display: grid;
+  /* areas */
+}`,
+  },
+  {
+    id: "css-accessibility-forced-colors",
+    area: "css",
+    title: "CSS и доступность: forced-colors, contrast и reduced preferences",
+    subtitle: "Как интерфейс должен выживать в пользовательских настройках доступности.",
+    level: "Production",
+    duration: "65 мин",
+    core: "CSS должен уважать системные предпочтения пользователя: контраст, уменьшение движения, принудительные цвета и прозрачность.",
+    mechanism: "Media features prefers-reduced-motion, prefers-contrast и forced-colors позволяют адаптировать стили к настройкам ОС и вспомогательных режимов.",
+    workplace: "Если кнопка ответа различается только цветом фона, в high contrast режиме пользователь может потерять смысл состояния.",
+    code: `@media (forced-colors: active) {
+  .answer.right {
+    outline: 2px solid CanvasText;
+  }
+}`,
+    concepts: ["цвет не должен быть единственным индикатором", "forced-colors может заменить палитру", "outline важен для фокуса", "prefers-reduced-motion снижает движение"],
+    mistakes: ["Скрывать focus outline.", "Передавать ошибку только красным цветом.", "Не проверять интерфейс в forced-colors."],
+    interview: ["Что такое forced-colors?", "Почему цвет не должен быть единственным сигналом?", "Как учитывать reduced motion?"],
+    taskScenario: "Кнопки квиза должны оставаться понятными в high contrast режиме.",
+    taskPrompt: "Добавь CSS для .answer.right/.answer.wrong в forced-colors и сохрани текстовые метки.",
+    taskInput: "right/wrong состояния",
+    taskOutput: "состояния различимы без обычной палитры",
+    taskStarter: `@media (forced-colors: active) {
+  /* states */
+}`,
+  },
+  {
+    id: "html-landmarks-navigation-a11y",
+    area: "html",
+    title: "Landmarks, структура страницы и навигация скринридера",
+    subtitle: "Как main, nav, header, footer и aside помогают быстро ориентироваться.",
+    level: "Production",
+    duration: "55 мин",
+    core: "Landmark-элементы создают карту страницы для клавиатурной навигации и вспомогательных технологий.",
+    mechanism: "header, nav, main, aside, footer, section и article дают области смысла; aria-label помогает различать несколько одинаковых landmarks.",
+    workplace: "В учебной платформе отдельные nav для разделов и режимов должны иметь понятные aria-label, иначе навигация становится шумной.",
+    code: `<nav aria-label="Разделы курса">
+  <a href="/js">JavaScript</a>
+</nav>
+<main id="content">...</main>`,
+    concepts: ["main должен быть один для основного содержания", "nav нужен для навигационных групп", "aria-label различает похожие области", "skip link помогает перейти к контенту"],
+    mistakes: ["Делать несколько main на одной странице.", "Оставлять несколько nav без доступного имени.", "Использовать section без заголовка там, где нужна структура."],
+    interview: ["Что такое landmark?", "Зачем nav aria-label?", "Для чего skip link?"],
+    taskScenario: "На странице есть верхнее меню, список тем и переключатель режимов, и все они объявлены как nav без имён.",
+    taskPrompt: "Разметь landmarks так, чтобы скринридер различал навигацию по разделам, темам и режимам.",
+    taskInput: "header, topic rail, mode tabs, content",
+    taskOutput: "понятная карта страницы",
+    taskStarter: `<header>
+  <nav aria-label="">
+  </nav>
+</header>`,
+  },
+  {
+    id: "react-suspense-code-splitting",
+    area: "react",
+    title: "Suspense, lazy и code splitting",
+    subtitle: "Как грузить тяжёлые части интерфейса тогда, когда они действительно нужны.",
+    level: "Production",
+    duration: "70 мин",
+    core: "Code splitting уменьшает начальную загрузку, а Suspense описывает fallback для части UI, которая ещё не готова.",
+    mechanism: "React.lazy динамически импортирует компонент, Suspense показывает fallback до готовности, а граница должна быть поставлена там, где loading не ломает весь экран.",
+    workplace: "Редактор задач или большая интерактивная демка не обязаны попадать в первый JS-бандл главной страницы.",
+    code: `const TaskEditor = lazy(() => import("./TaskEditor"));
+
+<Suspense fallback={<p>Загрузка редактора...</p>}>
+  <TaskEditor />
+</Suspense>`,
+    concepts: ["lazy работает с default export", "fallback должен быть локальным и полезным", "splitting помогает первому экрану", "не дробить код до микромодулей без причины"],
+    mistakes: ["Ставить один огромный Suspense на всю страницу.", "Делать fallback пустым.", "Лениво грузить критичный первый экран."],
+    interview: ["Что делает React.lazy?", "Зачем Suspense fallback?", "Когда code splitting вреден?"],
+    taskScenario: "Большой редактор решения нужен только после нажатия 'Открыть IDE-подсказку'.",
+    taskPrompt: "Вынеси TaskEditor в lazy-компонент и покажи локальный fallback через Suspense.",
+    taskInput: "showEditor = true",
+    taskOutput: "главная страница грузится легче, редактор загружается по требованию",
+    taskStarter: `const TaskEditor = lazy(() => import("./TaskEditor"));
+// Suspense boundary`,
+  },
+];
+
+const generatedTopics = proTopicSeeds.map(makeProTopic);
+
+export const topics: Topic[] = [...featuredTopics, ...generatedTopics];
 
 export const roadmap = [
   {
