@@ -1,3 +1,5 @@
+import { dokaReferenceSeeds } from "./dokaReferenceSeeds";
+
 export type AreaId = "js" | "css" | "html" | "react";
 
 export type LessonSection = {
@@ -1913,6 +1915,38 @@ type ProTopicSeed = {
   taskStarter: string;
 };
 
+function compactCode(code: string) {
+  return code
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(" ");
+}
+
+function areaPracticeSurface(area: AreaId) {
+  if (area === "html") return "семантика, доступность, валидность разметки и поведение без JavaScript";
+  if (area === "css") return "адаптивная раскладка, состояния, каскад, поддержка длинного контента и системных настроек";
+  if (area === "react") return "поток данных, состояние, повторные рендеры, доступность и устойчивость сценария";
+  return "данные, выполнение кода, ошибки, асинхронность, DOM и наблюдаемое поведение в DevTools";
+}
+
+function conceptExplanation(seed: ProTopicSeed) {
+  return seed.concepts.map((concept) => {
+    return `${concept}. Проверь это на маленьком примере: измени входные данные, сломай крайний случай и объясни, почему результат меняется именно так.`;
+  });
+}
+
+function interviewChecklist(seed: ProTopicSeed) {
+  return [
+    `Дай короткое определение без заученной формулы: ${seed.core}`,
+    `Покажи механизм на коде: ${compactCode(seed.code)}.`,
+    `Назови рабочий сценарий: ${seed.workplace}`,
+    `Разбери ошибку: ${seed.mistakes[0]}`,
+    "Закончи правилом выбора: когда использовать этот подход, а когда взять более простой.",
+  ];
+}
+
 const sourceMap: Record<AreaId, { label: string; url: string }[]> = {
   js: [
     { label: "Дока: JavaScript", url: "https://doka.guide/js/" },
@@ -1944,9 +1978,14 @@ function devToolFor(area: AreaId) {
 }
 
 function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
+  const firstConcept = seed.concepts[0] ?? seed.core;
+  const secondConcept = seed.concepts[1] ?? seed.mechanism;
+  const thirdConcept = seed.concepts[2] ?? seed.workplace;
+  const codeHint = compactCode(seed.code);
+
   return makeQuiz([
     {
-      prompt: `Что главное понять в теме «${seed.title}»?`,
+      prompt: `В теме «${seed.title}» какая мысль должна остаться после конспекта?`,
       answer: seed.core,
       distractors: [
         "Достаточно выучить название API без понимания механики.",
@@ -1958,7 +1997,7 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: `В этой теме важна рабочая модель: ${seed.mechanism}`,
     },
     {
-      prompt: `Как эта тема проявляется в реальной работе?`,
+      prompt: `Какой рабочий пример лучше всего доказывает, что «${seed.title}» не просто теория?`,
       answer: seed.workplace,
       distractors: [
         "Она проявляется только в задачах на алгоритмы без связи с интерфейсом.",
@@ -1970,7 +2009,7 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Pro-уровень требует связывать синтаксис с продуктовым сценарием и поддержкой кода.",
     },
     {
-      prompt: `Что стоит объяснить на собеседовании по теме «${seed.title}»?`,
+      prompt: `Какую механику важно проговорить, если интервьюер просит объяснить «${seed.title}»?`,
       answer: seed.mechanism,
       distractors: [
         "Только краткое определение из одного предложения.",
@@ -1982,7 +2021,7 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Сильный ответ включает механизм, пример, ограничения и частую ошибку.",
     },
     {
-      prompt: "Какая ошибка здесь наиболее опасна?",
+      prompt: `В задаче по теме «${seed.title}» появился баг. Какая причина наиболее похожа на настоящий источник проблемы?`,
       answer: seed.mistakes[0],
       distractors: [
         "Переименовать переменную без изменения поведения.",
@@ -1994,7 +2033,7 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Ошибки из темы важны тем, что приводят к реальным багам, а не только к некрасивому коду.",
     },
     {
-      prompt: "Какой практический критерий показывает, что тема усвоена?",
+      prompt: `Какой критерий показывает, что тема «${seed.title}» усвоена практически?`,
       answer: `Ты можешь применить её в сценарии: ${seed.taskScenario}`,
       distractors: [
         "Ты прочитал заголовок статьи и сразу перешёл дальше.",
@@ -2006,8 +2045,8 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Навык закрепляется, когда знание переносится в маленькую рабочую задачу.",
     },
     {
-      prompt: `Что лучше сделать после конспекта по теме «${seed.title}»?`,
-      answer: "Ответить на вопросы, решить задачу в IDE и проговорить типичные ошибки.",
+      prompt: `Какой следующий шаг после чтения статьи «${seed.title}» даст больше всего пользы?`,
+      answer: `Решить задачу «${seed.taskPrompt}», затем объяснить ${firstConcept} своими словами.`,
       distractors: [
         "Сразу считать тему полностью закрытой.",
         "Перейти к новой теме без проверки понимания.",
@@ -2018,7 +2057,7 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Платформа строится вокруг цикла: объяснение, проверка, задача, повторение.",
     },
     {
-      prompt: "Какой инструмент поможет проверить тему практически?",
+      prompt: `Где лучше всего проверить гипотезу по теме «${seed.title}»?`,
       answer: devToolFor(seed.area),
       distractors: [
         "Только просмотр миниатюры сайта.",
@@ -2030,20 +2069,20 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Инструменты браузера показывают, что происходит с кодом в реальном интерфейсе.",
     },
     {
-      prompt: "Что отличает Pro-подход к этой теме?",
-      answer: "Понимание механики, ограничений, рабочего применения и связи с качеством UX.",
+      prompt: `Что в примере «${codeHint}» должно быть понятно после темы «${seed.title}»?`,
+      answer: secondConcept,
       distractors: [
-        "Максимальное количество терминов без практики.",
-        "Случайная задача из другой темы.",
-        "Полное игнорирование мобильной версии.",
-        "Ответы без объяснения причин.",
-        "Одинаковый конспект для любой темы.",
+        "Только то, что код можно скопировать без запуска.",
+        "Только название файла, где лежит пример.",
+        "Только цвет интерфейсной карточки.",
+        "Только способ открыть репозиторий.",
+        "Только то, что пример существует.",
       ],
-      explain: "Front Gym Pro должен тренировать перенос знания в работу, а не только узнавание термина.",
+      explain: `${secondConcept} - один из опорных пунктов темы, его нужно увидеть в коде, а не только прочитать.`,
     },
     {
-      prompt: "Что должно быть в хорошем ответе junior+ по этой теме?",
-      answer: `Механика, пример, ограничение и ошибка: ${seed.mistakes[0]}`,
+      prompt: `Что отличает сильный junior+ ответ по теме «${seed.title}»?`,
+      answer: `Механика, пример, ограничение, рабочий кейс и ошибка: ${seed.mistakes[0]}`,
       distractors: [
         "Только слово yes или no.",
         "Только пример из чужого кода без объяснения.",
@@ -2054,8 +2093,8 @@ function makeProQuiz(seed: ProTopicSeed): QuizQuestion[] {
       explain: "Junior+ отличается тем, что может объяснить последствия решения.",
     },
     {
-      prompt: "Как понять, что задача по теме подобрана правильно?",
-      answer: `Без понимания темы «${seed.title}» её нельзя решить чисто и устойчиво.`,
+      prompt: `Какая задача действительно относится к теме «${seed.title}»?`,
+      answer: `Та, где явно тренируются ${firstConcept}, ${thirdConcept} и сценарий: ${seed.taskScenario}`,
       distractors: [
         "Задача проверяет случайную строковую операцию.",
         "Задача вообще не использует тему урока.",
@@ -2105,10 +2144,43 @@ function makeProTasks(seed: ProTopicSeed): Task[] {
         "После исправления можно сформулировать правило для будущих задач.",
       ],
     },
+    {
+      id: `task-${seed.id}-edge-case`,
+      topicId: seed.id,
+      title: `Проверить крайний случай: ${seed.title}`,
+      level: seed.level === "Production" ? "Middle-ready" : "Junior+",
+      scenario: `Команда уже написала happy path по теме «${seed.title}», но в реальном интерфейсе появились нестандартные данные или мобильное ограничение.`,
+      prompt:
+        `Расширь пример так, чтобы он выдерживал один опасный случай: ${seed.mistakes[1] ?? seed.mistakes[0]} Добавь явную проверку результата и коротко подпиши, почему решение относится именно к теме.`,
+      input: seed.taskInput,
+      output: `Рабочий результат плюс обработка ошибки: ${seed.taskOutput}`,
+      starter: seed.taskStarter,
+      checklist: [
+        "Есть отдельная проверка для неидеальных входных данных.",
+        "Решение не скрывает ошибку молча.",
+        `В коде виден один из опорных пунктов: ${seed.concepts[0] ?? seed.core}.`,
+        "Поведение можно повторить в консоли, браузере или тесте.",
+      ],
+    },
+    {
+      id: `task-${seed.id}-interview-demo`,
+      topicId: seed.id,
+      title: `Ответить как на собеседовании: ${seed.title}`,
+      level: "Junior+",
+      scenario: `Интервьюер просит не определение, а объяснение с примером, ограничением и рабочим применением темы «${seed.title}».`,
+      prompt:
+        "Подготовь ответ на 2-3 минуты и маленький демо-фрагмент. В ответе должны быть механизм, пример, типичная ошибка, способ проверки и ситуация, где инструмент лучше не усложнять.",
+      input: seed.interview.join(" | "),
+      output: "Связный ответ + минимальный кодовый пример + одно ограничение",
+      starter: seed.code,
+      checklist: interviewChecklist(seed),
+    },
   ];
 }
 
 function makeProTopic(seed: ProTopicSeed): Topic {
+  const practiceSurface = areaPracticeSurface(seed.area);
+
   return {
     id: seed.id,
     area: seed.area,
@@ -2120,35 +2192,60 @@ function makeProTopic(seed: ProTopicSeed): Topic {
     sources: sourceMap[seed.area],
     sections: [
       {
-        title: "Зачем это нужно",
+        title: "1. Зачем это нужно",
         body: [
           seed.core,
           seed.workplace,
-          "Для полноценного изучения важно не останавливаться на определении. Нужно понимать, какие баги тема предотвращает, как она влияет на поддержку проекта и как проверить решение в браузере.",
+          `В этой теме мы смотрим не только на синтаксис, а на рабочую поверхность: ${practiceSurface}. Если после чтения ты можешь назвать только термин, тема ещё не закреплена. Если можешь объяснить, какой баг она предотвращает и где проверяется, знание уже становится рабочим.`,
         ],
         bullets: seed.concepts,
       },
       {
-        title: "Как это работает",
+        title: "2. Ментальная модель",
         body: [
           seed.mechanism,
-          "На собеседовании хороший ответ строится от механики к примеру: сначала объясняем, что происходит, затем показываем код, затем называем ограничение и типичную ошибку.",
+          `Держи в голове причинно-следственную цепочку: входные данные или состояние попадают в код, код применяет правило темы, браузер или React показывает наблюдаемый результат. Для «${seed.title}» нельзя ограничиться примером из одной строки: важно понимать, что изменится при пустом значении, долгом запросе, маленьком экране, повторном рендере или другом порядке выполнения.`,
+        ],
+        bullets: conceptExplanation(seed),
+      },
+      {
+        title: "3. Минимальный пример",
+        body: [
+          "Сначала нужен короткий пример, который можно переписать руками без фреймворков и магии. Он должен показывать один главный механизм, а не пытаться сразу быть архитектурой всего приложения.",
+          `После запуска измени входные данные из условия: ${seed.taskInput}. Если результат меняется предсказуемо, значит базовая механика понята.`,
         ],
         code: seed.code,
       },
       {
-        title: "Рабочий сценарий",
+        title: "4. Рабочий сценарий",
         body: [
           seed.taskScenario,
-          "Критерий качества здесь простой: код должен быть понятен следующему разработчику, устойчив к изменению данных и проверяем без догадок.",
+          seed.taskPrompt,
+          `Ожидаемый результат: ${seed.taskOutput}. В рабочем проекте этого мало просто добиться один раз: нужно сделать код читаемым, устойчивым к изменению данных и понятным для следующего разработчика.`,
         ],
         workExample: seed.workplace,
       },
       {
-        title: "Как тренироваться",
+        title: "5. Ошибки и edge cases",
         body: [
-          "Сначала перескажи тему своими словами за одну минуту. Потом ответь на вопросы тренажёра без подсказок. После этого реши задачу в IDE и проверь себя по чеклисту.",
-          "Если ошибка повторяется, добавь тему в закладки и вернись к ней через день. Повторение слабых мест даёт больше роста, чем быстрое пролистывание новых статей.",
+          `Главный риск: ${seed.mistakes[0]}`,
+          `Ещё проверь: ${seed.mistakes.slice(1).join(" ") || "неидеальные входные данные, повторный запуск и мобильный сценарий."}`,
+          "Хорошая учебная задача обязательно ломает happy path: пустые данные, длинный текст, неверный тип, повторный клик, медленная сеть, высокая контрастность или маленькая ширина экрана. Без этого знание остаётся хрупким.",
+        ],
+      },
+      {
+        title: "6. Как проверить в работе",
+        body: [
+          `Практический инструмент: ${devToolFor(seed.area)}.`,
+          `Проверяй не только итоговый экран, но и причину результата: какие данные пришли, какое правило сработало, где видна ошибка и почему исправление не создаёт новую зависимость.`,
+          "Для мобильной версии отдельная проверка обязательна: длинные подписи, переполнение, touch-target, фокус и состояние ошибки часто ломаются именно там.",
+        ],
+      },
+      {
+        title: "7. Собеседование и шпаргалка",
+        body: [
+          `На junior/junior+ уровне по теме «${seed.title}» обычно хотят услышать не энциклопедию, а ясный ответ: что это решает, как работает, где применяется, какая типичная ошибка и как ты это проверишь.`,
+          `Структура ответа: ${interviewChecklist(seed).join(" ")}`,
         ],
       },
     ],
@@ -2165,6 +2262,820 @@ function makeProTopic(seed: ProTopicSeed): Topic {
     ],
     quiz: makeProQuiz(seed),
     tasks: makeProTasks(seed),
+  };
+}
+
+type DokaReferenceSeed = (typeof dokaReferenceSeeds)[number];
+type DokaSection = DokaReferenceSeed[0];
+
+type DokaTopicDraft = {
+  id: string;
+  area: AreaId;
+  section: DokaSection;
+  sectionName: string;
+  slug: string;
+  title: string;
+  term: string;
+  core: string;
+  mechanism: string;
+  workplace: string;
+  code: string;
+  concepts: string[];
+  mistakes: string[];
+  sourceUrl: string;
+};
+
+const voidHtmlTags = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "source",
+  "track",
+  "wbr",
+]);
+
+function cleanDokaTitle(title: string, slug: string) {
+  return title.trim() || slug;
+}
+
+function stripInlineCode(value: string) {
+  return value.replace(/`/g, "");
+}
+
+function primaryToken(title: string, slug: string) {
+  return title.match(/`([^`]+)`/)?.[1] ?? stripInlineCode(cleanDokaTitle(title, slug));
+}
+
+function slugToClassName(slug: string) {
+  return slug.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "demo";
+}
+
+function dokaSectionName(section: DokaSection) {
+  const names: Record<DokaSection, string> = {
+    html: "HTML",
+    css: "CSS",
+    js: "JavaScript",
+    a11y: "Доступность",
+    tools: "Веб-платформа",
+    recipes: "Рецепт",
+  };
+
+  return names[section];
+}
+
+function dokaArea(section: DokaSection, slug: string, title: string): AreaId {
+  const value = `${slug} ${title}`.toLowerCase();
+
+  if (section === "html" || section === "a11y") return "html";
+  if (section === "css") return "css";
+  if (section === "js") return "js";
+
+  if (section === "recipes") {
+    if (value.includes("react")) return "react";
+    if (/css|style|grid|flex|center|menu|animation|checkbox|radio|color|layout/.test(value)) return "css";
+    if (/form|html|image|picture|semantic|seo|a11y|accessib/.test(value)) return "html";
+    return "js";
+  }
+
+  if (/react|component|state|typescript|node|api|json|http|cors|storage|test|git|ci|webpack|rollup/.test(value)) {
+    return "js";
+  }
+
+  if (/css|layout|render|vitals|pixel|preprocessor|css-in-js/.test(value)) return "css";
+  if (/seo|screenreader|accessib|html|markdown/.test(value)) return "html";
+
+  return "js";
+}
+
+function dokaDisplayTitle(section: DokaSection, title: string, slug: string) {
+  const cleaned = stripInlineCode(cleanDokaTitle(title, slug));
+  if (section === "a11y") return `A11y: ${cleaned}`;
+  if (section === "tools") return `Web: ${cleaned}`;
+  if (section === "recipes") return `Рецепт: ${cleaned}`;
+  return cleaned;
+}
+
+function dokaSourceUrl(section: DokaSection, slug: string) {
+  return `https://doka.guide/${section}/${slug}/`;
+}
+
+function dokaLevel(section: DokaSection, slug: string, title: string): Topic["level"] {
+  const value = `${section} ${slug} ${title}`.toLowerCase();
+
+  if (/architecture|security|performance|vitals|worker|buffer|atomics|prototype|descriptor|observer|suspense|ci|docker|nginx|apache/.test(value)) {
+    return "Production";
+  }
+
+  if (/this|closure|promise|async|event|grid|flex|aria|role|form|validation|storage|regexp|map|set|reduce/.test(value)) {
+    return "Interview";
+  }
+
+  return "Core";
+}
+
+function dokaConcepts(area: AreaId, section: DokaSection, term: string) {
+  if (section === "a11y") {
+    return [
+      `${term} должен улучшать доступность, а не маскировать плохую семантику`,
+      "сначала выбираем правильный HTML, потом добавляем ARIA только при необходимости",
+      "проверяем клавиатуру, фокус, доступное имя и состояние в дереве доступности",
+      "визуальное состояние и состояние для ассистивных технологий должны совпадать",
+    ];
+  }
+
+  if (area === "html") {
+    return [
+      `${term} должен давать браузеру и пользователю правильный смысл`,
+      "атрибуты меняют поведение, доступность, отправку формы или загрузку ресурса",
+      "валидная разметка легче стилизуется, тестируется и читается скринридером",
+      "если элемент интерактивный, важны клавиатура, фокус и понятное имя",
+    ];
+  }
+
+  if (area === "css") {
+    return [
+      `${term} участвует в каскаде, наследовании, раскладке или состоянии интерфейса`,
+      "значение свойства нужно проверять на длинном тексте и маленькой ширине",
+      "DevTools показывает итоговое значение, переопределения и причину проигранного правила",
+      "хороший CSS не ломает доступность и системные настройки пользователя",
+    ];
+  }
+
+  if (area === "react") {
+    return [
+      `${term} должен улучшать поток данных, композицию или пользовательский сценарий`,
+      "компонент должен ясно получать входные данные и отдавать предсказуемый UI",
+      "эффекты, состояние и загрузка должны иметь понятные границы ответственности",
+      "проверяем повторный рендер, пустые данные, ошибку и мобильное состояние",
+    ];
+  }
+
+  return [
+    `${term} имеет контракт: какие данные принимает, что возвращает и какие ошибки возможны`,
+    "важно отличать мутирующее поведение от создания нового значения",
+    "проверяем edge cases: пустые данные, неверный тип, повторный вызов и асинхронную ошибку",
+    "на собеседовании нужно объяснить механизм, а не только название метода",
+  ];
+}
+
+function dokaMistakes(area: AreaId, section: DokaSection, term: string) {
+  if (section === "a11y") {
+    return [
+      `Добавлять ${term} механически, не проверяя доступное имя, роль и состояние.`,
+      "Считать, что визуально красивый компонент автоматически доступен с клавиатуры.",
+      "Прятать проблему ARIA-атрибутом вместо выбора правильного HTML-элемента.",
+    ];
+  }
+
+  if (area === "html") {
+    return [
+      `Использовать ${term} по внешнему виду, а не по смыслу и поведению.`,
+      "Забыть связать подписи, состояния, типы кнопок или ограничения формы.",
+      "Проверять только десктоп и мышь, игнорируя клавиатуру и мобильный ввод.",
+    ];
+  }
+
+  if (area === "css") {
+    return [
+      `Применить ${term} как украшение, не проверив влияние на раскладку и каскад.`,
+      "Не учесть длинные слова, малую ширину, высокий contrast mode или prefers-reduced-motion.",
+      "Исправлять конфликт через !important вместо понимания специфичности и порядка слоёв.",
+    ];
+  }
+
+  if (area === "react") {
+    return [
+      `Встроить ${term} без ясной границы состояния и ответственности компонента.`,
+      "Сделать пример рабочим только на happy path и забыть загрузку, ошибку или пустые данные.",
+      "Пытаться лечить архитектуру лишним состоянием вместо нормальной композиции.",
+    ];
+  }
+
+  return [
+    `Использовать ${term} без понимания входных данных, возвращаемого значения и побочных эффектов.`,
+    "Путать синхронное и асинхронное поведение или мутирующий и немутирующий метод.",
+    "Проверять один пример и не смотреть пустые данные, неверный тип и повторный вызов.",
+  ];
+}
+
+function dokaCore(area: AreaId, section: DokaSection, term: string) {
+  if (section === "recipes") {
+    return `${term} - практический сценарий, где нужно собрать несколько знаний в маленькое рабочее решение.`;
+  }
+
+  if (section === "tools") {
+    return `${term} относится к инженерной базе фронтендера: это помогает понимать окружение, сборку, сеть, качество или поддержку проекта.`;
+  }
+
+  if (section === "a11y") {
+    return `${term} помогает сделать интерфейс понятным не только визуально, но и для клавиатуры, скринридеров и других способов взаимодействия.`;
+  }
+
+  if (area === "html") return `${term} задаёт смысл, поведение или данные разметки, поэтому влияет на доступность, формы, SEO и поддержку UI.`;
+  if (area === "css") return `${term} управляет тем, как элемент выглядит, занимает место, реагирует на состояние или адаптируется к среде пользователя.`;
+  if (area === "react") return `${term} помогает собрать интерфейс из компонентов с понятным состоянием, данными и жизненным циклом.`;
+
+  return `${term} - часть языка или браузерного API, которую важно понимать через контракт, пример, ограничения и рабочий баг.`;
+}
+
+function dokaMechanism(area: AreaId, section: DokaSection, term: string) {
+  if (section === "a11y") {
+    return `Механика ${term} видна в дереве доступности: браузер сопоставляет HTML, ARIA, текст, состояние и фокус, а ассистивные технологии озвучивают итоговую модель пользователю.`;
+  }
+
+  if (area === "html") {
+    return `Браузер парсит разметку, строит DOM и назначает элементам встроенное поведение. ${term} важно проверять не только глазами, но и через валидность, фокус, форму и доступное имя.`;
+  }
+
+  if (area === "css") {
+    return `Правило с ${term} проходит через каскад, специфичность, вычисленные значения и раскладку. Итог видно в Computed/Layout, а не только в исходном CSS-файле.`;
+  }
+
+  if (area === "react") {
+    return `${term} нужно рассматривать через поток props/state: компонент получает данные, рендерит интерфейс, реагирует на событие и не должен прятать лишние побочные эффекты.`;
+  }
+
+  return `${term} работает по контракту JavaScript: значение попадает на вход, движок выполняет алгоритм, результат или ошибка возвращаются наружу. Важно понимать, меняется исходное значение или создаётся новое.`;
+}
+
+function dokaWorkplace(area: AreaId, section: DokaSection, term: string) {
+  if (section === "recipes") {
+    return `Рабочий сценарий: собрать ${term} как маленькую фичу продукта, где есть состояние, данные, ошибки, доступность и мобильная ширина.`;
+  }
+
+  if (section === "tools") {
+    return `Рабочий сценарий: объяснить команде, как ${term} влияет на разработку, деплой, отладку или качество фронтенд-проекта.`;
+  }
+
+  if (section === "a11y") {
+    return `Рабочий сценарий: компонент выглядит готовым, но пользователь с клавиатурой или скринридером должен так же понимать ${term}, состояние и следующий шаг.`;
+  }
+
+  if (area === "html") return `Рабочий сценарий: сверстать блок с ${term} так, чтобы он был валидным, доступным, понятным для CSS и устойчивым без JavaScript.`;
+  if (area === "css") return `Рабочий сценарий: применить ${term} в карточке, форме или навигации и проверить, что раскладка не ломается на телефоне.`;
+  if (area === "react") return `Рабочий сценарий: использовать ${term} в компоненте, который получает данные, показывает состояния загрузки и не ломает повторный рендер.`;
+
+  return `Рабочий сценарий: применить ${term} в обработке данных интерфейса, DOM-сценарии или запросе и объяснить результат в консоли.`;
+}
+
+function htmlExample(section: DokaSection, slug: string, title: string) {
+  const token = primaryToken(title, slug);
+  const tag = token.match(/^<([a-z0-9-]+)/i)?.[1];
+  const attr = title.match(/Атрибут [`"]?([a-z0-9-*]+)[`"]?/i)?.[1] ?? token.match(/^[a-z-]+$/i)?.[0];
+
+  if (section === "a11y") {
+    return `<button class="filter-toggle" aria-expanded="false" aria-controls="filters-panel">
+  Фильтры
+</button>
+<section id="filters-panel" hidden>
+  <h2>Фильтры каталога</h2>
+</section>`;
+  }
+
+  if (slug === "button") {
+    return `<button type="button" class="profile-action">
+  Сохранить профиль
+</button>`;
+  }
+
+  if (slug === "form") {
+    return `<form action="/subscribe" method="post">
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" required>
+  <button type="submit">Подписаться</button>
+</form>`;
+  }
+
+  if (slug === "input" || attr === "inputmode") {
+    return `<label>
+  Код подтверждения
+  <input name="code" inputmode="numeric" autocomplete="one-time-code">
+</label>`;
+  }
+
+  if (slug === "img" || slug === "alt") {
+    return `<img src="/team/mentor.jpg" alt="Ментор проверяет решение студента">`;
+  }
+
+  if (attr && title.toLowerCase().includes("атрибут")) {
+    return `<button type="button" ${attr === "disabled" ? "disabled" : `${attr}="demo-value"`}>
+  Действие
+</button>`;
+  }
+
+  if (tag && voidHtmlTags.has(tag)) {
+    return `<${tag} class="${slugToClassName(slug)}">`;
+  }
+
+  if (tag) {
+    return `<${tag} class="${slugToClassName(slug)}">
+  Контент интерфейса
+</${tag}>`;
+  }
+
+  return `<section class="${slugToClassName(slug)}">
+  <h2>${stripInlineCode(cleanDokaTitle(title, slug))}</h2>
+  <p>Смысловой блок без лишней обёртки.</p>
+</section>`;
+}
+
+function cssValueFor(property: string) {
+  const values: Record<string, string> = {
+    "accent-color": "#0b8f76",
+    "align-items": "center",
+    "aspect-ratio": "16 / 9",
+    "background": "#f6f8f7",
+    "background-color": "#ffffff",
+    "border": "1px solid #d8e0dc",
+    "border-radius": "8px",
+    "box-shadow": "0 12px 36px rgb(20 34 28 / 10%)",
+    "box-sizing": "border-box",
+    "color": "#151716",
+    "display": "grid",
+    "flex": "1 1 18rem",
+    "font-size": "1rem",
+    "font-weight": "700",
+    "gap": "1rem",
+    "grid-template-columns": "repeat(auto-fit, minmax(16rem, 1fr))",
+    "height": "auto",
+    "inset": "0",
+    "justify-content": "space-between",
+    "line-height": "1.5",
+    "margin": "0",
+    "max-width": "64rem",
+    "min-height": "44px",
+    "object-fit": "cover",
+    "opacity": "0.92",
+    "overflow": "auto",
+    "padding": "1rem",
+    "position": "relative",
+    "text-align": "start",
+    "text-overflow": "ellipsis",
+    "transform": "translateY(-2px)",
+    "transition": "transform 180ms ease",
+    "width": "min(100%, 64rem)",
+    "z-index": "10",
+  };
+
+  return values[property] ?? "initial";
+}
+
+function cssExample(slug: string, title: string) {
+  const token = primaryToken(title, slug);
+  const className = slugToClassName(slug);
+
+  if (token.startsWith("::")) {
+    return `.badge${token} {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #0b8f76;
+}`;
+  }
+
+  if (token.startsWith(":")) {
+    return `.field${token} {
+  border-color: #0b8f76;
+  box-shadow: 0 0 0 3px rgb(11 143 118 / 14%);
+}`;
+  }
+
+  if (token.startsWith("@media")) {
+    return `@media (max-width: 600px) {
+  .lesson-grid {
+    grid-template-columns: 1fr;
+  }
+}`;
+  }
+
+  if (token.startsWith("@")) {
+    return `${token} {
+  .card {
+    display: grid;
+    gap: 1rem;
+  }
+}`;
+  }
+
+  if (token.endsWith("()")) {
+    const fn = token.slice(0, -2);
+    return `.hero-title {
+  font-size: ${fn}(1.8rem, 5vw, 3.6rem);
+}`;
+  }
+
+  const property = token.replace(/[();]/g, "");
+
+  return `.${className} {
+  ${property}: ${cssValueFor(property)};
+}`;
+}
+
+const jsArrayExamples: Record<string, string> = {
+  "array-at": `const lastTask = tasks.at(-1);
+console.log(lastTask);`,
+  "array-concat": `const fullQueue = urgentTasks.concat(todayTasks);
+console.log(fullQueue);`,
+  "array-every": `const allValid = fields.every((field) => field.valid);
+console.log(allValid);`,
+  "array-filter": `const visibleUsers = users.filter((user) => user.active);
+console.log(visibleUsers);`,
+  "array-find": `const selected = products.find((product) => product.id === selectedId);
+console.log(selected);`,
+  "array-flat": `const flatErrors = formSections.map((section) => section.errors).flat();
+console.log(flatErrors);`,
+  "array-foreach": `notifications.forEach((item) => {
+  markAsRead(item.id);
+});`,
+  "array-includes": `const hasAdmin = roles.includes("admin");
+console.log(hasAdmin);`,
+  "array-map": `const labels = users.map((user) => user.name);
+console.log(labels);`,
+  "array-reduce": `const total = cart.reduce((sum, item) => sum + item.price, 0);
+console.log(total);`,
+  "array-some": `const hasErrors = fields.some((field) => field.error);
+console.log(hasErrors);`,
+  "array-sort": `const sorted = [...users].sort((a, b) => a.name.localeCompare(b.name));
+console.log(sorted);`,
+};
+
+function jsExample(slug: string, title: string) {
+  if (jsArrayExamples[slug]) return jsArrayExamples[slug];
+
+  const token = primaryToken(title, slug);
+  const method = token.match(/^\.?([a-zA-Z_$][\w$]*)\(\)$/)?.[1];
+
+  if (slug.startsWith("array-") && method) {
+    return `const result = items.${method}((item) => item.visible);
+console.log(result);`;
+  }
+
+  if (slug.startsWith("string-") && method) {
+    return `const normalized = message.${method}(" ");
+console.log(normalized);`;
+  }
+
+  if (slug.includes("promise") || slug.includes("async") || slug.includes("fetch")) {
+    return `async function loadProfile(id) {
+  const response = await fetch(\`/api/users/\${id}\`);
+  if (!response.ok) throw new Error("Не удалось загрузить профиль");
+  return response.json();
+}`;
+  }
+
+  if (slug.includes("event") || slug.includes("addeventlistener")) {
+    return `document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  console.log(button.dataset.action);
+});`;
+  }
+
+  if (slug.includes("localstorage") || slug.includes("storage")) {
+    return `const key = "front-gym-theme";
+localStorage.setItem(key, "dark");
+console.log(localStorage.getItem(key));`;
+  }
+
+  if (slug.includes("map") || slug.includes("set")) {
+    return `const selectedIds = new Set([101, 204]);
+console.log(selectedIds.has(204));`;
+  }
+
+  if (slug.includes("regexp") || slug.includes("regex")) {
+    return `const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+console.log(emailPattern.test("student@example.com"));`;
+  }
+
+  if (slug.includes("date")) {
+    return `const formatter = new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" });
+console.log(formatter.format(new Date()));`;
+  }
+
+  return `function inspectValue(value) {
+  console.log("${stripInlineCode(cleanDokaTitle(title, slug))}", value);
+  return value;
+}`;
+}
+
+function reactExample(term: string) {
+  return `function PracticeCard({ topic, completed }) {
+  return (
+    <article aria-label={\`${term}: \${topic.title}\`}>
+      <h3>{topic.title}</h3>
+      <button type="button">{completed ? "Повторить" : "Начать"}</button>
+    </article>
+  );
+}`;
+}
+
+function dokaCodeExample(area: AreaId, section: DokaSection, slug: string, title: string, term: string) {
+  if (area === "html") return htmlExample(section, slug, title);
+  if (area === "css") return cssExample(slug, title);
+  if (area === "react") return reactExample(term);
+  return jsExample(slug, title);
+}
+
+function dokaTaskStarter(area: AreaId, code: string) {
+  if (area === "css") return `${code}\n\n/* Добавь mobile-first проверку ниже */`;
+  if (area === "html") return `${code}\n\n<!-- Проверь доступное имя, фокус и валидность -->`;
+  if (area === "react") return `${code}\n\n// Добавь состояние загрузки, пустые данные и ошибку`;
+  return `${code}\n\n// Добавь проверку edge case и выведи результат через console.log`;
+}
+
+function makeDokaDraft(seed: DokaReferenceSeed): DokaTopicDraft {
+  const [section, slug, rawTitle] = seed;
+  const area = dokaArea(section, slug, rawTitle);
+  const title = dokaDisplayTitle(section, rawTitle, slug);
+  const term = stripInlineCode(cleanDokaTitle(rawTitle, slug));
+  const sectionName = dokaSectionName(section);
+  const core = dokaCore(area, section, term);
+  const mechanism = dokaMechanism(area, section, term);
+  const workplace = dokaWorkplace(area, section, term);
+  const code = dokaCodeExample(area, section, slug, rawTitle, term);
+
+  return {
+    id: `doka-${section}-${slug.replace(/[^a-z0-9]+/gi, "-")}`,
+    area,
+    section,
+    sectionName,
+    slug,
+    title,
+    term,
+    core,
+    mechanism,
+    workplace,
+    code,
+    concepts: dokaConcepts(area, section, term),
+    mistakes: dokaMistakes(area, section, term),
+    sourceUrl: dokaSourceUrl(section, slug),
+  };
+}
+
+function makeDokaQuiz(draft: DokaTopicDraft): QuizQuestion[] {
+  return makeQuiz([
+    {
+      prompt: `Что главное понять в теме «${draft.title}»?`,
+      answer: draft.core,
+      distractors: [
+        "Достаточно запомнить название и не разбирать рабочее поведение.",
+        "Тема нужна только для теоретического экзамена и не влияет на интерфейс.",
+        "Можно всегда применять её одинаково, без проверки контекста.",
+        "Она не связана с доступностью, мобильностью и поддержкой кода.",
+        "Правильный ответ зависит только от личного стиля разработчика.",
+      ],
+      explain: draft.mechanism,
+    },
+    {
+      prompt: `Где «${draft.term}» проявляется в рабочем фронтенде?`,
+      answer: draft.workplace,
+      distractors: [
+        "Только в абстрактной задаче без интерфейса.",
+        "Только в названии файла.",
+        "Только при выборе цвета редактора кода.",
+        "Только в комментариях к pull request.",
+        "Только в серверной базе данных.",
+      ],
+      explain: "Тема считается усвоенной, когда её можно привязать к пользовательскому сценарию.",
+    },
+    {
+      prompt: `Какой инструмент лучше использовать для проверки темы «${draft.title}»?`,
+      answer: devToolFor(draft.area),
+      distractors: [
+        "Только визуальный осмотр без DevTools.",
+        "Только перезапуск сборки.",
+        "Только переименование класса.",
+        "Только удаление всех стилей.",
+        "Только чтение заголовка статьи.",
+      ],
+      explain: "Проверять нужно наблюдаемое поведение: DOM, computed styles, сеть, состояние или рендер.",
+    },
+    {
+      prompt: `Какая ошибка чаще всего ломает тему «${draft.title}»?`,
+      answer: draft.mistakes[0],
+      distractors: [
+        "Слишком понятное имя переменной.",
+        "Наличие короткого демо-примера.",
+        "Проверка мобильной ширины.",
+        "Использование валидного HTML.",
+        "Явная обработка ошибки.",
+      ],
+      explain: "Вопросы Pro проверяют реальные причины багов, а не случайные действия.",
+    },
+    {
+      prompt: `Что должно быть в хорошем ответе на собеседовании по «${draft.title}»?`,
+      answer: "Определение, механизм, рабочий пример, ограничение, типичная ошибка и способ проверки.",
+      distractors: [
+        "Только перевод термина на английский.",
+        "Только ссылка на документацию без объяснения.",
+        "Только фраза 'я такое видел'.",
+        "Только один скопированный пример.",
+        "Только мнение о том, нравится тема или нет.",
+      ],
+      explain: "Junior+ ответ всегда связывает знание с последствиями в продукте.",
+    },
+    {
+      prompt: `Какой пример задачи относится к теме «${draft.title}»?`,
+      answer: `Задача, где нужно применить «${draft.term}» в сценарии: ${draft.workplace}`,
+      distractors: [
+        "Случайная операция со строкой без связи с темой.",
+        "Задача без ввода, вывода и критерия готовности.",
+        "Копирование чужого кода без запуска.",
+        "Обсуждение дизайна без проверки поведения.",
+        "Любая задача, если она достаточно короткая.",
+      ],
+      explain: "Задача должна тренировать именно тему карточки.",
+    },
+    {
+      prompt: `Что проверить после минимального примера «${draft.term}»?`,
+      answer: draft.concepts[2],
+      distractors: [
+        "Только что код визуально занимает мало строк.",
+        "Только что переменная называется красиво.",
+        "Только что пример открывается в IDE.",
+        "Только что файл лежит в правильной папке.",
+        "Только что тема есть в списке.",
+      ],
+      explain: "Мини-пример без проверки крайних случаев даёт ложное чувство понимания.",
+    },
+    {
+      prompt: `Как понять, что «${draft.title}» не стоит усложнять?`,
+      answer: "Если простая семантика, базовое свойство или явная функция решают задачу понятнее, выбираем простой вариант.",
+      distractors: [
+        "Всегда выбирать самый новый API.",
+        "Всегда добавлять библиотеку.",
+        "Всегда писать больше абстракций.",
+        "Всегда избегать DevTools.",
+        "Всегда переносить решение на сервер.",
+      ],
+      explain: "Pro-уровень - это не усложнение, а точный выбор инструмента.",
+    },
+    {
+      prompt: `Что должно совпасть в UI после применения «${draft.term}»?`,
+      answer: "Код, визуальное поведение, доступность, мобильное состояние и объяснение разработчика.",
+      distractors: [
+        "Только цвет кнопки.",
+        "Только число строк в файле.",
+        "Только название ветки в Git.",
+        "Только порядок импортов.",
+        "Только размер шрифта в редакторе.",
+      ],
+      explain: "Учебная тема ценна, когда её можно проверить с разных сторон.",
+    },
+    {
+      prompt: `Какой следующий шаг после чтения «${draft.title}» самый полезный?`,
+      answer: "Переписать пример руками, изменить входные данные, решить задачу и объяснить типичную ошибку вслух.",
+      distractors: [
+        "Сразу перейти к следующей теме.",
+        "Сохранить заголовок в закладки и ничего не делать.",
+        "Выучить только первый абзац.",
+        "Сравнить только дизайн карточек.",
+        "Удалить пример после первого запуска.",
+      ],
+      explain: "Повторение превращается в навык через активное воспроизведение.",
+    },
+  ]);
+}
+
+function makeDokaTasks(draft: DokaTopicDraft): Task[] {
+  return [
+    {
+      id: `task-${draft.id}-practice`,
+      topicId: draft.id,
+      title: `Применить: ${draft.title}`,
+      level: dokaLevel(draft.section, draft.slug, draft.title) === "Production" ? "Junior+" : "Junior",
+      scenario: draft.workplace,
+      prompt:
+        `Собери небольшой пример по теме «${draft.term}». В решении должен быть виден сам механизм темы, а не случайный обходной путь. Добавь один неидеальный случай и покажи результат.`,
+      input: `Тема: ${draft.term}; сценарий: ${draft.sectionName}`,
+      output: "Рабочий пример, который можно объяснить и проверить в DevTools или консоли",
+      starter: dokaTaskStarter(draft.area, draft.code),
+      checklist: [
+        "Решение использует именно тему карточки.",
+        "Есть пример входных данных или состояния интерфейса.",
+        "Есть проверка пустого, длинного, неверного или повторного сценария.",
+        "Результат можно объяснить на junior/junior+ собеседовании.",
+      ],
+    },
+    {
+      id: `task-${draft.id}-debug`,
+      topicId: draft.id,
+      title: `Найти ошибку: ${draft.title}`,
+      level: "Junior+",
+      scenario: `В код-ревью заметили проблему: ${draft.mistakes[0]}`,
+      prompt:
+        "Опиши причину бага человеческим языком, исправь пример и добавь короткое правило, которое поможет не повторять ошибку в рабочем проекте.",
+      input: draft.mistakes.join(" | "),
+      output: "Причина бага + исправленный пример + правило для будущей работы",
+      starter: draft.code,
+      checklist: [
+        "Объяснение говорит о причине, а не только о симптоме.",
+        "Исправление не ломает мобильный сценарий.",
+        "Проверка не зависит от одного счастливого случая.",
+        `В ответе упомянут инструмент проверки: ${devToolFor(draft.area)}.`,
+      ],
+    },
+    {
+      id: `task-${draft.id}-interview`,
+      topicId: draft.id,
+      title: `Ответ для интервью: ${draft.title}`,
+      level: "Junior+",
+      scenario: `Интервьюер просит объяснить «${draft.term}» через реальный интерфейс, пример и ограничение.`,
+      prompt:
+        "Подготовь ответ на 2 минуты: дай определение, покажи пример, назови один edge case, типичную ошибку и способ проверки.",
+      input: draft.concepts.join(" | "),
+      output: "Структурированный ответ + минимальный пример кода",
+      starter: draft.code,
+      checklist: [
+        "Ответ начинается с простой формулировки.",
+        "Есть пример из фронтенд-интерфейса.",
+        "Названо ограничение или ситуация, где инструмент не нужен.",
+        "Есть типичная ошибка и проверка результата.",
+      ],
+    },
+  ];
+}
+
+function makeDokaReferenceTopic(seed: DokaReferenceSeed): Topic {
+  const draft = makeDokaDraft(seed);
+
+  return {
+    id: draft.id,
+    area: draft.area,
+    title: draft.title,
+    subtitle: `${draft.sectionName}: авторский Pro-конспект по каталогу Доки с рабочим примером, вопросами и задачами по теме.`,
+    level: dokaLevel(draft.section, draft.slug, draft.title),
+    duration: draft.section === "recipes" ? "30 мин" : "18 мин",
+    outcome: `После темы ты сможешь объяснить «${draft.term}», применить в интерфейсе, назвать ограничения и пройти короткий junior/junior+ вопрос.`,
+    sources: [
+      { label: `Дока: ${draft.term}`, url: draft.sourceUrl },
+      ...sourceMap[draft.area].filter((source) => !source.url.includes("doka.guide")).slice(0, 2),
+    ],
+    sections: [
+      {
+        title: "1. Суть темы",
+        body: [
+          draft.core,
+          draft.mechanism,
+          `Эта карточка сделана как быстрый Pro-разбор: сначала смысл, потом рабочий пример, затем проверка и тренировка. Текст не копирует статью-источник, а использует каталог Доки как карту покрытия.`,
+        ],
+        bullets: draft.concepts,
+      },
+      {
+        title: "2. Когда пригодится в работе",
+        body: [
+          draft.workplace,
+          `Смотри на «${draft.term}» как на инструмент для конкретного сценария, а не как на отдельный термин. Если в задаче нет наблюдаемого поведения, данных, состояния или доступности, значит пример нужно усилить.`,
+        ],
+        workExample: draft.workplace,
+      },
+      {
+        title: "3. Минимальный пример",
+        body: [
+          "Перепиши пример руками, запусти и измени одно входное значение. Так быстрее видно, где работает механизм, а где начинается случайное совпадение.",
+          `Для проверки используй: ${devToolFor(draft.area)}.`,
+        ],
+        code: draft.code,
+      },
+      {
+        title: "4. Edge cases",
+        body: [
+          `Главный риск: ${draft.mistakes[0]}`,
+          `Дополнительно проверь: ${draft.mistakes.slice(1).join(" ")}`,
+          "На телефоне обязательно проверь длинные подписи, область нажатия, фокус, переполнение и состояние ошибки.",
+        ],
+      },
+      {
+        title: "5. Собеседование",
+        body: [
+          `Короткий ответ по «${draft.term}» должен звучать так: что это решает, как работает, где применяется, чем можно сломать и как проверить.`,
+          "После объяснения полезно показать маленький пример и отдельно сказать, когда инструмент не нужен.",
+        ],
+      },
+    ],
+    cheatsheet: [
+      ...draft.concepts,
+      `Рабочий кейс: ${draft.workplace}`,
+      `Проверка: ${devToolFor(draft.area)}.`,
+    ],
+    pitfalls: draft.mistakes,
+    interview: [
+      `Что такое «${draft.term}» и какую проблему оно решает?`,
+      `Как «${draft.term}» проявляется в реальном интерфейсе?`,
+      `Какая типичная ошибка встречается в теме «${draft.term}»?`,
+      `Как проверить результат через ${devToolFor(draft.area)}?`,
+      "Когда лучше выбрать более простой инструмент?",
+    ],
+    quiz: makeDokaQuiz(draft),
+    tasks: makeDokaTasks(draft),
   };
 }
 
@@ -3717,8 +4628,9 @@ requestAnimationFrame(() => {
 ];
 
 const generatedTopics = proTopicSeeds.map(makeProTopic);
+const dokaReferenceTopics = dokaReferenceSeeds.map(makeDokaReferenceTopic);
 
-export const topics: Topic[] = [...featuredTopics, ...generatedTopics];
+export const topics: Topic[] = [...featuredTopics, ...generatedTopics, ...dokaReferenceTopics];
 
 export const roadmap = [
   {

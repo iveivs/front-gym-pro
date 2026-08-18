@@ -77,7 +77,15 @@ export default function Home() {
       const matchesArea = area === "all" || topic.area === area;
       const matchesQuery =
         normalizedQuery.length === 0 ||
-        [topic.title, topic.subtitle, topic.outcome, areas[topic.area].title]
+        [
+          topic.title,
+          topic.subtitle,
+          topic.outcome,
+          areas[topic.area].title,
+          topic.cheatsheet.join(" "),
+          topic.pitfalls.join(" "),
+          topic.sources.map((source) => source.label).join(" "),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery);
@@ -191,8 +199,8 @@ export default function Home() {
           <p className="eyebrow">Pro standard</p>
           <h1>Учебник, тренажёр, интервью-база и рабочая шпаргалка в одном интерфейсе.</h1>
           <p>
-            Первый релиз Pro собран вокруг глубины: каждая тема объясняет механизм, показывает
-            рабочий сценарий, проверяет интервью-вопросами и даёт задачи строго по теме.
+            Pro-каталог расширен до масштаба Доки: глубокие модули, справочные карточки,
+            рабочие сценарии, интервью-вопросы и задачи строго по теме.
           </p>
         </div>
 
