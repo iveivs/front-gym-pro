@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type RefObject } from "react";
 import {
   areas,
   qualityPrinciples,
@@ -12,6 +12,7 @@ import {
 } from "./content";
 
 type Mode = "learn" | "train" | "tasks" | "interview" | "roadmap";
+type CatalogMode = "all" | "study" | "reference" | "practice" | "interview";
 
 type Progress = {
   bestScores: Record<string, number>;
@@ -65,6 +66,34 @@ type TopicGroup = {
   topics: Topic[];
 };
 
+const catalogFilters: { id: CatalogMode; label: string; description: string }[] = [
+  {
+    id: "all",
+    label: "Все",
+    description: "полная база",
+  },
+  {
+    id: "study",
+    label: "Изучение",
+    description: "ключевые модули",
+  },
+  {
+    id: "reference",
+    label: "Справочник",
+    description: "точечные карточки",
+  },
+  {
+    id: "practice",
+    label: "Практика",
+    description: "рабочие задачи",
+  },
+  {
+    id: "interview",
+    label: "Интервью",
+    description: "частые вопросы",
+  },
+];
+
 const groupOrder = [
   "Pro-модули: JavaScript",
   "JS: язык и управление",
@@ -109,6 +138,42 @@ function topicGroupTitle(topic: Topic) {
   return topic.group ?? `Pro-модули: ${areas[topic.area].title}`;
 }
 
+function topicMatchesCatalogMode(topic: Topic, catalogMode: CatalogMode) {
+  const groupTitle = topicGroupTitle(topic);
+  const isReference = topic.id.startsWith("doka-");
+  const isPractice = groupTitle === "Практические рецепты" || topic.title.startsWith("Рецепт:");
+
+  if (catalogMode === "study") return groupTitle.startsWith("Pro-модули");
+  if (catalogMode === "reference") return isReference && !isPractice;
+  if (catalogMode === "practice") return isPractice || topic.level === "Production";
+  if (catalogMode === "interview") return topic.level === "Interview";
+
+  return true;
+}
+
+function groupDescription(title: string) {
+  if (title.startsWith("Pro-модули")) return "Большие учебные темы: теория, рабочий пример, вопросы и задачи.";
+  if (title.includes("раскладки")) return "Сетки, выравнивание, адаптивность и устойчивость интерфейса.";
+  if (title.includes("каскад")) return "Почему стиль победил, как управлять слоями и не воевать с селекторами.";
+  if (title.includes("состояния")) return "Псевдоклассы, интерактивные состояния и проверка поведения.";
+  if (title.includes("ARIA") || title.includes("A11y")) return "Доступность, роли, состояния, фокус и проверка клавиатурой.";
+  if (title.includes("DOM")) return "События, элементы страницы, браузерные API и реальные UI-сценарии.";
+  if (title.includes("асинхронность")) return "Promise, async/await, запросы, отмена, очереди и ошибки сети.";
+  if (title.includes("объекты")) return "Ссылки, прототипы, классы, коллекции и модель данных.";
+  if (title.includes("массивы")) return "Методы перебора, преобразование списков и аккуратная работа без мутаций.";
+  if (title.includes("формы")) return "Поля, подписи, отправка, валидация и удобный ввод на телефоне.";
+  if (title.includes("React")) return "Компоненты, состояние, эффекты, архитектура и производительность.";
+  if (title.includes("Веб-платформа")) return "Инструменты, окружение, браузер, сеть и качество проекта.";
+  if (title.includes("рецепты")) return "Практические мини-сценарии, которые удобно повторять в IDE.";
+
+  return "Подборка связанных тем, которые лучше изучать и повторять вместе.";
+}
+
+function groupProgress(group: TopicGroup, progress: Progress) {
+  const completed = group.topics.filter((topic) => progress.completed.includes(topic.id)).length;
+  return Math.round((completed / group.topics.length) * 100);
+}
+
 function groupWeight(title: string) {
   const index = groupOrder.indexOf(title);
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
@@ -137,6 +202,8 @@ function pluralRu(value: number, one: string, few: string, many: string) {
 }
 
 export default function Home() {
+  const topicRailRef = useRef<HTMLElement | null>(null);
+  const studyPaneRef = useRef<HTMLElement | null>(null);
   const [area, setArea] = useState<AreaId | "all">("all");
   const [query, setQuery] = useState("");
   const [topicId, setTopicId] = useState(topics[0].id);
@@ -146,41 +213,54 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState<Progress>(() => readProgress());
   const [copiedTask, setCopiedTask] = useState<string | null>(null);
-  const [openGroups, setOpenGroups] = useState<string[]>([]);
+  const [catalogMode, setCatalogMode] = useState<CatalogMode>("all");
+  const [activeGroupTitle, setActiveGroupTitle] = useState<string | null>(null);
 
   const visibleTopics = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return topics.filter((topic) => {
       const matchesArea = area === "all" || topic.area === area;
+      const matchesMode = topicMatchesCatalogMode(topic, catalogMode);
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
+          topicGroupTitle(topic),
           topic.title,
           topic.subtitle,
           topic.outcome,
           areas[topic.area].title,
           topic.cheatsheet.join(" "),
           topic.pitfalls.join(" "),
+          topic.interview.join(" "),
+          topic.tasks.map((task) => `${task.title} ${task.scenario} ${task.prompt}`).join(" "),
           topic.sources.map((source) => source.label).join(" "),
         ]
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery);
 
-      return matchesArea && matchesQuery;
+      return matchesArea && matchesMode && matchesQuery;
     });
-  }, [area, query]);
+  }, [area, catalogMode, query]);
 
-  const selectedTopic = topics.find((topic) => topic.id === topicId) ?? topics[0];
-  const currentTopic = visibleTopics.find((topic) => topic.id === topicId) ?? visibleTopics[0] ?? selectedTopic;
-  const currentGroupTitle = topicGroupTitle(currentTopic);
   const visibleTopicGroups = useMemo(() => groupTopics(visibleTopics), [visibleTopics]);
-  const openGroupTitles = useMemo(() => {
-    if (query.trim().length > 0) return new Set(visibleTopicGroups.map((group) => group.title));
-
-    return new Set([currentGroupTitle, ...openGroups]);
-  }, [currentGroupTitle, openGroups, query, visibleTopicGroups]);
+  const selectedTopic = topics.find((topic) => topic.id === topicId) ?? topics[0];
+  const selectedVisibleTopic = visibleTopics.find((topic) => topic.id === topicId);
+  const activeTopicGroup =
+    visibleTopicGroups.find((group) => group.title === activeGroupTitle) ??
+    (selectedVisibleTopic
+      ? visibleTopicGroups.find((group) => group.title === topicGroupTitle(selectedVisibleTopic))
+      : undefined) ??
+    visibleTopicGroups[0] ??
+    null;
+  const activeGroupTopics = activeTopicGroup?.topics ?? [];
+  const currentTopic =
+    activeGroupTopics.find((topic) => topic.id === topicId) ??
+    selectedVisibleTopic ??
+    activeGroupTopics[0] ??
+    visibleTopics[0] ??
+    selectedTopic;
   const currentQuestion = currentTopic.quiz[questionIndex];
   const finished = questionIndex >= currentTopic.quiz.length;
   const visibleScore = score + (selectedAnswer === currentQuestion?.correct ? 1 : 0);
@@ -199,27 +279,44 @@ export default function Home() {
 
   function chooseArea(nextArea: AreaId | "all") {
     setArea(nextArea);
-    setOpenGroups([]);
+    setActiveGroupTitle(null);
     const firstTopic = topics.find((topic) => nextArea === "all" || topic.area === nextArea);
-    if (firstTopic) chooseTopic(firstTopic.id, "learn");
+    if (firstTopic) chooseTopic(firstTopic.id, "learn", "none");
   }
 
-  function chooseTopic(nextTopicId: string, nextMode: Mode = "learn") {
+  function scrollOnMobile(target: RefObject<HTMLElement | null>) {
+    if (typeof window === "undefined" || !window.matchMedia("(max-width: 760px)").matches) return;
+
+    window.setTimeout(() => {
+      target.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
+  function chooseTopic(nextTopicId: string, nextMode: Mode = "learn", scrollTarget: "study" | "none" = "study") {
     const nextTopic = topics.find((topic) => topic.id === nextTopicId);
-    if (nextTopic) {
-      const nextGroupTitle = topicGroupTitle(nextTopic);
-      setOpenGroups((groups) => (groups.includes(nextGroupTitle) ? groups : [...groups, nextGroupTitle]));
-    }
+    if (nextTopic) setActiveGroupTitle(topicGroupTitle(nextTopic));
 
     setTopicId(nextTopicId);
     setMode(nextMode);
     resetQuiz();
+    if (scrollTarget === "study") scrollOnMobile(studyPaneRef);
   }
 
-  function toggleTopicGroup(groupTitle: string) {
-    setOpenGroups((groups) =>
-      groups.includes(groupTitle) ? groups.filter((title) => title !== groupTitle) : [...groups, groupTitle],
-    );
+  function chooseCatalogMode(nextCatalogMode: CatalogMode) {
+    setCatalogMode(nextCatalogMode);
+    setActiveGroupTitle(null);
+    resetQuiz();
+  }
+
+  function chooseTopicGroup(group: TopicGroup) {
+    setActiveGroupTitle(group.title);
+    const firstTopic = group.topics[0];
+    if (firstTopic) {
+      setTopicId(firstTopic.id);
+      setMode("learn");
+      resetQuiz();
+      scrollOnMobile(topicRailRef);
+    }
   }
 
   function resetQuiz() {
@@ -295,11 +392,11 @@ export default function Home() {
 
       <section className="commandCenter">
         <div className="productIntro">
-          <p className="eyebrow">Pro standard</p>
-          <h1>Учебник, тренажёр, интервью-база и рабочая шпаргалка в одном интерфейсе.</h1>
+          <p className="eyebrow">Front Gym Pro</p>
+          <h1>Учебник, тренажёр и карта знаний фронтендера.</h1>
           <p>
-            Системное повторение фронтенда: глубокие модули, справочные карточки,
-            рабочие сценарии, интервью-вопросы и задачи в IDE.
+            Системное повторение фронтенда: сначала раздел и подраздел,
+            затем конспект, вопросы, задачи и план закрепления.
           </p>
         </div>
 
@@ -342,64 +439,102 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="workspace">
-        <aside className="topicRail" aria-label="Темы">
-          <div className="railHeader">
-            <span>Темы</span>
+      <section className="catalogBoard" aria-label="Каталог тем">
+        <div className="catalogHeader">
+          <div>
+            <p className="sectionKicker">Карта знаний</p>
+            <h2>{area === "all" ? "Выбери раздел или подраздел" : `${areas[area].title}: подразделы и темы`}</h2>
+            <p>
+              Смысловые блоки для последовательного повторения: база, справочник,
+              практика и интервью.
+            </p>
+          </div>
+          <div className="catalogSummary" aria-label="Темы в текущем фильтре">
+            <strong>{visibleTopics.length}</strong>
+            <span>{pluralRu(visibleTopics.length, "тема", "темы", "тем")}</span>
             <small>
               {visibleTopicGroups.length} {pluralRu(visibleTopicGroups.length, "группа", "группы", "групп")}
             </small>
           </div>
-          <p className="railMeta">
-            {visibleTopics.length} {pluralRu(visibleTopics.length, "тема", "темы", "тем")} в выбранном фильтре
-          </p>
+        </div>
 
-          <div className="topicButtons">
-            {visibleTopicGroups.map((group) => {
-              const isOpen = openGroupTitles.has(group.title);
+        <div className="materialTabs" role="tablist" aria-label="Тип материала">
+          {catalogFilters.map((filter) => (
+            <button
+              key={filter.id}
+              className={catalogMode === filter.id ? "active" : ""}
+              type="button"
+              role="tab"
+              aria-selected={catalogMode === filter.id}
+              onClick={() => chooseCatalogMode(filter.id)}
+            >
+              <span>{filter.label}</span>
+              <small>{filter.description}</small>
+            </button>
+          ))}
+        </div>
 
-              return (
-                <section className="topicGroup" key={group.title}>
+        <div className="groupGrid">
+          {visibleTopicGroups.map((group) => {
+            const isActive = activeTopicGroup?.title === group.title;
+            const progressValue = groupProgress(group, progress);
+            const questionsCount = group.topics.reduce((sum, topic) => sum + topic.quiz.length, 0);
+            const tasksCount = group.topics.reduce((sum, topic) => sum + topic.tasks.length, 0);
+
+            return (
+              <button
+                key={group.title}
+                type="button"
+                className={isActive ? "groupCard active" : "groupCard"}
+                aria-pressed={isActive}
+                onClick={() => chooseTopicGroup(group)}
+              >
+                <span className="groupCardTitle">{group.title}</span>
+                <span className="groupCardText">{groupDescription(group.title)}</span>
+                <span className="groupCardMeta">
+                  {group.topics.length} {pluralRu(group.topics.length, "тема", "темы", "тем")} · {questionsCount} вопросов · {tasksCount} задач
+                </span>
+                <span className="groupCardProgress" aria-label={`Прогресс ${progressValue}%`}>
+                  <i style={{ width: `${progressValue}%` }} />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {activeTopicGroup ? (
+        <section className="workspace">
+          <aside className="topicRail" ref={topicRailRef} aria-label={`Темы подраздела ${activeTopicGroup.title}`}>
+            <div className="railHeader">
+              <span>Темы подраздела</span>
+              <small>{activeGroupTopics.length}</small>
+            </div>
+            <p className="railMeta">{activeTopicGroup.title}</p>
+            <p className="railHint">{groupDescription(activeTopicGroup.title)}</p>
+
+            <div className="topicButtons">
+              {activeGroupTopics.map((topic) => {
+                const best = progress.bestScores[topic.id] ?? 0;
+                const isActive = topic.id === currentTopic.id;
+
+                return (
                   <button
-                    type="button"
-                    className="topicGroupHeader"
-                    aria-expanded={isOpen}
-                    onClick={() => toggleTopicGroup(group.title)}
+                    key={topic.id}
+                    className={isActive ? "topicButton active" : "topicButton"}
+                    onClick={() => chooseTopic(topic.id)}
                   >
-                    <span>{group.title}</span>
-                    <span className="topicGroupMeta">
-                      <small>{group.topics.length}</small>
-                      <b aria-hidden="true">{isOpen ? "-" : "+"}</b>
-                    </span>
+                    <span>{topic.title}</span>
+                    <small>
+                      {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
+                    </small>
                   </button>
-                  {isOpen && (
-                    <div className="topicGroupItems">
-                      {group.topics.map((topic) => {
-                        const best = progress.bestScores[topic.id] ?? 0;
-                        const isActive = topic.id === currentTopic.id;
+                );
+              })}
+            </div>
+          </aside>
 
-                        return (
-                          <button
-                            key={topic.id}
-                            className={isActive ? "topicButton active" : "topicButton"}
-                            onClick={() => chooseTopic(topic.id)}
-                          >
-                            <span>{topic.title}</span>
-                            <small>
-                              {areas[topic.area].title} · {topic.level} · {best}/{topic.quiz.length}
-                            </small>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
-          </div>
-        </aside>
-
-        <section className="studyPane">
+          <section className="studyPane" ref={studyPaneRef}>
           <div className="topicHeader">
             <div>
               <div className="metaLine">
@@ -647,8 +782,15 @@ export default function Home() {
               </div>
             </section>
           )}
+          </section>
         </section>
-      </section>
+      ) : (
+        <section className="emptyState" aria-live="polite">
+          <span>Ничего не найдено</span>
+          <h2>Попробуй изменить поиск или тип материала</h2>
+          <p>Каталог большой, поэтому лучше искать по названию темы, разделу, задаче или интервью-вопросу.</p>
+        </section>
+      )}
     </main>
   );
 }

@@ -31,8 +31,10 @@ test("server-renders Front Gym Pro shell", async () => {
   const html = await response.text();
   assert.match(html, /Front Gym Pro/);
   assert.match(html, /платформа подготовки фронтендера/);
-  assert.match(html, /Учебник, тренажёр, интервью-база/);
-  assert.match(html, /Системное повторение фронтенда/);
+  assert.match(html, /Учебник, тренажёр и карта знаний фронтендера/);
+  assert.match(html, /Карта знаний/);
+  assert.match(html, /Изучение/);
+  assert.match(html, /Справочник/);
   assert.match(html, /1080<!-- --> модулей/);
   assert.match(html, /10800<!-- --> вопросов/);
   assert.match(html, /3286<!-- --> задач/);
@@ -52,8 +54,11 @@ test("product content is wired into the app", async () => {
   assert.match(page, /frontGymProProgress/);
   assert.match(page, /Начать тренировку/);
   assert.match(page, /Копировать задачу/);
+  assert.match(page, /CatalogMode/);
+  assert.match(page, /catalogFilters/);
   assert.match(page, /visibleTopicGroups/);
-  assert.match(page, /topicGroupHeader/);
+  assert.match(page, /groupCard/);
+  assert.match(page, /Темы подраздела/);
   assert.match(content, /Замыкания, область видимости/);
   assert.match(content, /Event loop, Promise/);
   assert.match(content, /Семантика, формы/);
